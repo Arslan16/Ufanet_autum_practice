@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="/{{ base_path }}/static/css/base.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/base.css') }}">
     <title>Centered Card</title>
 </head>
 
@@ -14,6 +14,6 @@
             {% block content %}{% endblock %}
         </div>
     </div>
+{% block scripts %}{% endblock %}
 </body>
-
 </html>

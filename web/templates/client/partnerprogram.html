@@ -4,8 +4,11 @@
 
 {% block content %}
     {% for category in categories %}
-        <div class="category" category-id="{{ category.id }}">
+        <div class="category" data-category-id="{{ category.id }}">
             <h3> {{ category.name }} </h3>
         </div>
     {% endfor %}
+{% endblock %}
+{% block scripts %}
+    <script src="{{ url_for('static', path='js/partnerprogram.js') }}"></script>
 {% endblock %}

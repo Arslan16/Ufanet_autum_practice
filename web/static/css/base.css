@@ -50,6 +50,7 @@ html,body{
     box-shadow:var(--shadow);
     box-sizing:border-box;
     border:1px solid rgba(12,12,12,0.03);
+    margin-bottom: 3vh;
 }
 
 h1 {
