@@ -18,6 +18,7 @@ async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
 
 
 async def get_all_cards_in_category_with_short_description(category_id: int, session: AsyncSession) -> list[dict]:
+    "Возвращает список словарей с полями карточки необходимыми для отображения в списке + имя и описание компании в каждой карточке"
     try:
         stmt = select(
                 CardsTable.id,

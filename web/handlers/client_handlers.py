@@ -9,6 +9,7 @@ from ..dependencies import async_session_generator
 
 
 client_rt = APIRouter(prefix="/partnerprogram")
+"Роутер отвечающий за обработку запросов для обычного посетителя сайта(Клиента)"
 
 
 @client_rt.get("/")
@@ -21,6 +22,7 @@ async def partnerprogram_get_handler(request: Request, session: AsyncSession = D
 
 @client_rt.get("/cards")
 async def partnerprogram_cards_post_handler(request: Request, category_id: int | None = Query(None), session: AsyncSession = Depends(async_session_generator)):
+    "Обработчик который выводит страничку со списком карточек в определенной категории, определяемой по category_id"
     if isinstance(category_id, int):
         cards: list[dict] = await get_all_cards_in_category_with_short_description(category_id, session)
     else:

@@ -6,8 +6,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
 
+# Загрузка переменных окружения .env
 load_dotenv()
-dotenv_values = get_dotenv_values()
+
+dotenv_values: dict[str, str] = get_dotenv_values()
+"Переменные окружения .env"
 
 CURRENT_DIR: str = str(os.path.dirname(os.path.abspath(__file__)))
 "Абсолютный путь к текущей папке"
