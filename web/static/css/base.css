@@ -1,0 +1,83 @@
+:root{
+    --bg: #f4f5f6; /* чуть темнее, чем #ffffff */
+    --card-bg: #ffffff;
+    --card-radius: 18px;
+    --card-max-width: 720px;
+    --gap: 24px;
+    --shadow: 0 10px 30px rgba(12,12,12,0.08);
+    --accent: #2563eb;
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+html,body{
+    height:100%;
+    margin:0;
+    font-family:var(--font-sans);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    color:#0b1220;
+}
+
+/* Центрируем карточку по вертикали и горизонтали */
+.stage{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    box-sizing:border-box;
+}
+
+.card{
+    width:100%;
+    max-width:var(--card-max-width);
+    background:var(--card-bg);
+    border-radius:var(--card-radius);
+    padding:32px;
+    box-shadow:var(--shadow);
+    box-sizing:border-box;
+    border:1px solid rgba(12,12,12,0.03);
+}
+
+h1{
+    margin:0 0 8px 0;
+    font-size:20px;
+    font-weight:600;
+    letter-spacing: -0.2px;
+}
+
+p{margin:0 0 16px 0; color:#344054}
+
+.controls{
+    display:flex;
+    gap:12px;
+    margin-top:8px;
+}
+
+.btn{
+    padding:8px 14px;
+    border-radius:10px;
+    border:0;
+    background:var(--accent);
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.muted{
+    padding:8px 14px;
+    border-radius:10px;
+    border:1px solid rgba(12,12,12,0.06);
+    background:transparent;
+    color:#0b1220;
+    cursor:pointer;
+    font-size:14px;
+}
+
+/* Адаптив */
+@media (max-width:420px){
+    .card{padding:20px}
+    h1{font-size:18px}
+}

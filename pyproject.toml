@@ -1,0 +1,14 @@
+[project]
+name = "ufanet-autum-practice"
+version = "0.1.0"
+description = "ufanet-autum-practice"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "dotenv>=0.9.9",
+    "fastapi>=0.118.0",
+    "jinja2>=3.1.6",
+    "sqlalchemy>=2.0.43",
+    "uvicorn>=0.37.0",
+]
