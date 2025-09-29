@@ -1,5 +1,5 @@
 :root{
-    --bg: #f4f5f6; /* чуть темнее, чем #ffffff */
+    --bg: #f4f5f6;
     --card-bg: #ffffff;
     --card-radius: 18px;
     --card-max-width: 720px;
@@ -20,7 +20,7 @@ html,body{
 }
 
 /* Центрируем карточку по вертикали и горизонтали */
-.stage{
+.stage {
     min-height:100vh;
     display:flex;
     align-items:center;
@@ -29,7 +29,19 @@ html,body{
     box-sizing:border-box;
 }
 
-.card{
+.category {
+    width:100%;
+    max-width:var(--card-max-width);
+    background:var(--card-bg);
+    border-radius:var(--card-radius);
+    padding:32px;
+    box-shadow:var(--shadow);
+    box-sizing:border-box;
+    border:1px solid rgba(12,12,12,0.03);
+    margin-bottom: 3vh;
+}
+
+.card {
     width:100%;
     max-width:var(--card-max-width);
     background:var(--card-bg);
@@ -40,22 +52,22 @@ html,body{
     border:1px solid rgba(12,12,12,0.03);
 }
 
-h1{
+h1 {
     margin:0 0 8px 0;
     font-size:20px;
     font-weight:600;
     letter-spacing: -0.2px;
 }
 
-p{margin:0 0 16px 0; color:#344054}
+p {margin:0 0 16px 0; color:#344054}
 
-.controls{
+.controls {
     display:flex;
     gap:12px;
     margin-top:8px;
 }
 
-.btn{
+.btn {
     padding:8px 14px;
     border-radius:10px;
     border:0;
@@ -66,7 +78,7 @@ p{margin:0 0 16px 0; color:#344054}
     font-size:14px;
 }
 
-.muted{
+.muted {
     padding:8px 14px;
     border-radius:10px;
     border:1px solid rgba(12,12,12,0.06);

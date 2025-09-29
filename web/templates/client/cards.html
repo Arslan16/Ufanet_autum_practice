@@ -3,9 +3,9 @@
 {% block title %}Моя страница{% endblock %}
 
 {% block content %}
-    {% for category in categories %}
-        <div class="category" category-id="{{ category.id }}">
-            <h3> {{ category.name }} </h3>
+    {% for card in cards %}
+        <div class="card">
+            <h3> {{ card }} </h3>
         </div>
     {% endfor %}
 {% endblock %}
