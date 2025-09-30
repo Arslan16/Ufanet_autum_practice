@@ -2,7 +2,8 @@
     --bg: #f4f5f6;
     --card-bg: #ffffff;
     --card-radius: 18px;
-    --card-max-width: 100vh;
+    --card-max-width: 50vh;
+    --card-max-height: 20vh;
     --gap: 24px;
     --shadow: 0 10px 30px rgba(12,12,12,0.08);
     --accent: #2563eb;
@@ -43,7 +44,10 @@ html,body{
 
 .card {
     width:100%;
+    overflow-x: scroll;
+    overflow-y: scroll;
     max-width:var(--card-max-width);
+    min-height: var(--card-max-height);
     background:var(--card-bg);
     border-radius:var(--card-radius);
     padding:32px;

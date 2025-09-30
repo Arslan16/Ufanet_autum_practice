@@ -25,22 +25,28 @@ ul li {
 #tablePlaceHolder {
     display: flex;
     flex-direction: column;
+    max-height: 30vh;
 }
 
 #tablePlaceHolder table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
-    overflow-x: scroll;
-    overflow-y: scroll;
 }
 
-#tablePlaceHolder td, #tablePlaceHolder th {
+#tablePlaceHolder table td, #tablePlaceHolder table th {
     width: auto;
+    max-width: 1vh;
+    min-width: 1vh;
     text-align: center;
     padding: 8px;
     border: 1px solid #ccc;
     overflow-x: scroll;
+}
+
+#tablePlaceHolder #tableContainer {
+    overflow-x: scroll;
+    overflow-y: scroll;
 }
 
 #tableButtonsBar {
