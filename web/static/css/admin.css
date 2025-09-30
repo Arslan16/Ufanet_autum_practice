@@ -1,0 +1,51 @@
+#tablesList h3 {
+    margin: auto;
+    text-align: center;
+}
+
+.table {
+    min-width: 150vh;
+    min-height: 50vh;
+}
+
+ul {
+    padding: 0%;
+}
+
+ul li {
+    width: 15vh;
+    height: 3vh;
+    margin: 1vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#tablePlaceHolder {
+    display: flex;
+    flex-direction: column;
+}
+
+#tablePlaceHolder table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    overflow-x: scroll;
+    overflow-y: scroll;
+}
+
+#tablePlaceHolder td, #tablePlaceHolder th {
+    width: auto;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #ccc;
+    overflow-x: scroll;
+}
+
+#tableButtonsBar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: auto;
+}

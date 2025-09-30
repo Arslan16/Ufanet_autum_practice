@@ -35,12 +35,6 @@ body {
     cursor: pointer;
 }
 
-.modalClose img {
-    margin: 3px;
-    width: 24px;
-    height: 24px;
-}
-
 .modalWindow {
     position: relative;
 }

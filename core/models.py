@@ -47,3 +47,11 @@ class CardsTable(BaseTable):
 
     category: Mapped["CategoriesTable"] = relationship(back_populates="cards")
     company: Mapped["CompaniesTable"] = relationship(back_populates="cards")
+
+
+dict_tables: dict[str, BaseTable] = {
+    CompaniesTable.__tablename__ : CompaniesTable,
+    CategoriesTable.__tablename__: CategoriesTable,
+    CardsTable.__tablename__: CardsTable
+}
+"Словарь, который под именем таблицы __tablename__ содержит ссылку на ее класс"

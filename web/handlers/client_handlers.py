@@ -34,6 +34,7 @@ async def partnerprogram_cards_post_handler(request: Request, category_id: int |
 
 @client_rt.post("/cards/get_card_info")
 async def get_card_info_post_handler(request: Request, data: CardPydanticModel, session: AsyncSession = Depends(async_session_generator)):
+    "Обрабатывает запрос на получение информации о карточке. Выдает отрендеренное модальное окно"
     card_info: dict[str, Any] = await get_card_info_by_card_id(data.card_id, session)
     logger.debug(f"{card_info=}")
     return TEMPLATES.TemplateResponse(request, "client/cards_modal.html", {"card": card_info})

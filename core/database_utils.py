@@ -3,11 +3,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from typing import Any
 
-from .models import CardsTable, CategoriesTable, CompaniesTable
+from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable
 
 
 async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
-    "Возвращает список словарей, которые являются отражением записи в бд по принципу ключ=столбей значение=значение столбца. Если записей нет то возвразает пустой список"
+    """
+    Возвращает список словарей с данными категорий из БД.
+
+    :param session: Асинхронная сессия SQLAlchemy
+    :rtype: list[dict[str, Any]]
+    :return: Список словарей, где ключ = имя столбца, значение = значение столбца.
+    """
     try:
         stmt = select(CategoriesTable.id, CategoriesTable.name)
         result = await session.execute(stmt)
@@ -17,8 +23,15 @@ async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
         return []
 
 
-async def get_all_cards_in_category_with_short_description(category_id: int, session: AsyncSession) -> list[dict]:
-    "Возвращает список словарей с полями карточки необходимыми для отображения в списке + имя и описание компании в каждой карточке"
+async def get_all_cards_in_category_with_short_description(category_id: int, session: AsyncSession) -> list[dict[str, Any]]:
+    """
+    Возвращает список словарей с полями карточки необходимыми для отображения в списке + имя и описание компании в каждой карточке
+
+    :param category_id: Идентификатор категории. Таблица categories.id
+    :param session: Асинхронная сессия SQLAlchemy
+    :rtype: list[dict[str, Any]]
+    :return: Список словарей, где ключ = имя столбца, значение = значение столбца.
+    """
     try:
         stmt = select(
                 CardsTable.id,
@@ -37,6 +50,12 @@ async def get_all_cards_in_category_with_short_description(category_id: int, ses
 
 
 async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[str, Any]:
+    """
+    Возвращает словарь с информацией о конкретной карточке по ее id. Если карточки нет возвращает пустой словарь
+
+    :param card_id: Идентификатор карточки cards.id
+    :param session: Асинхронная сессия SQLAlchemy
+    """
     try:
         stmt = select(
                 CardsTable.main_label,
@@ -52,4 +71,20 @@ async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[
     except Exception as exc:
         logger.error(exc)
         return {}
+
+
+async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> list[dict]:
+    """
+    Возвращает все строки из таблицы
+
+    :param table: Модель представляющая собой таблицу в базе данных
+    :param session: Асинхронная сессия SQLAlchemy
+    """
+    try:
+        stmt = select(*table.__table__.columns)
+        result = await session.execute(stmt)
+        return [dict(res) for res in result.mappings().all()]
+    except Exception as exc:
+        logger.error(exc)
+        return []
 
