@@ -97,3 +97,43 @@ p {margin:0 0 16px 0; color:#344054}
     display: flex;
     gap: 20px;
 }
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #344054;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid rgba(12,12,12,0.08);
+    border-radius: 10px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: #0b1220;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:hover,
+textarea:hover {
+    border-color: rgba(12,12,12,0.2);
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.5;
+}

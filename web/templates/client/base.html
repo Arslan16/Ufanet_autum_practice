@@ -9,8 +9,15 @@
     <title>Centered Card</title>
 </head>
 <body>
+    <div class="modalBackground">
+        <div class="modalActive">
+            <div class="modalClose">
+                <i class="bi bi-x-lg"></i>
+            </div>
+            <div class="modalWindow"></div>
+        </div>
+    </div>
     <div class="stage">
-        {% block modal %}{% endblock%}
         <div class="card">
             {% block content %}{% endblock %}
         </div>

@@ -5,10 +5,19 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/base.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/admin.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/card_admin_modal.css') }}">
     {% block links %}{% endblock%}
     <title>Admin Panel</title>
 </head>
 <body>
+    <div class="modalBackground">
+        <div class="modalActive">
+            <div class="modalClose">
+                <i class="bi bi-x-lg"></i>
+            </div>
+            <div class="modalWindow"></div>
+        </div>
+    </div>
     <div class="stage">
         <div class="inline">
             <div id="tablesList" class="card">

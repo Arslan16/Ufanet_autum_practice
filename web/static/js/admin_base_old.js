@@ -13,24 +13,22 @@ document.querySelectorAll(".tableSelectorBtn").forEach(btn => {
             tablePlaceHolder.innerHTML = await response.text();
             const tableContainer = document.getElementById("tableContainer");
             tableContainer.querySelector("tbody").querySelectorAll(".trigger").forEach(trigger => {
-            // получаем ширину отображенного содержимого и толщину ползунка прокрутки
+                // получаем ширину отображенного содержимого и толщину ползунка прокрутки
                 const windowInnerWidth = document.documentElement.clientWidth;
                 const scrollbarWidth = parseInt(window.innerWidth) - parseInt(windowInnerWidth);
 
                 // привязываем необходимые элементы
-                const bodyElementHTML = document.getElementsByTagName("body")[0];
                 const modalBackground = document.getElementsByClassName("modalBackground")[0];
                 const modalClose = document.getElementsByClassName("modalClose")[0];
                 const modalActive = document.getElementsByClassName("modalActive")[0];
                 const modalWindow = document.getElementsByClassName("modalWindow")[0];
-                // функция для корректировки положения body при появлении ползунка прокрутки
                 // событие нажатия на триггер открытия модального окна
                 trigger.addEventListener("click", async function () {
                     // делаем модальное окно видимым
                     modalBackground.style.display = "block";
                     // позиционируем наше окно по середине, где 175 - половина ширины модального окна
                     modalActive.style.left = "calc(50% - " + (175 - scrollbarWidth / 2) + "px)";
-                    const response = await fetch("./get_card_info", {
+                    const response = await fetch(window.location.pathname + "get_card_info", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

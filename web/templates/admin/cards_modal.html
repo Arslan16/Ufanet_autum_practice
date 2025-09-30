@@ -1,0 +1,62 @@
+
+<div>
+    <label>Идентификатор категории:
+        <input type="text" value="{{ card.category_id}}">
+    </label>
+</div>
+
+<div>
+    <label>Идентификатор компании:
+        <input type="text" value="{{ card.company_id}}">
+    </label>
+</div>
+
+<div>
+    <label>Основная надпись карточки:
+        <input type="text" value="{{ card.main_label}}">
+    </label>
+</div>
+
+<div>
+    <label>Описание под надписью:
+        <input type="text" value="{{ card.description_under_label}}">
+    </label>
+</div>
+
+<div>
+    <label>Метод получения:
+        <textarea>{{ card.obtain_method_description }}</textarea>
+    </label>
+</div>
+
+<div>
+    <label>Период действия:
+        <textarea>{{ card.validity_period }}</textarea>
+    </label>
+</div>
+
+<div>
+    <label> О партнере:
+        <textarea>{{ card.about_partner }}</textarea>
+    </label>
+</div>
+
+<div>
+    <label>Промокод:
+        <input type="text" value="{{ card.promocode}}">
+    </label>
+</div>
+
+<div>
+    <label>Ссылка на кнопке CTA:
+        <input type="text" value="{{ card.call_to_action_link}}">
+    </label>
+</div>
+
+<div>
+    <label>Надпись на кнопке CTA:
+        <input type="text" value="{{ card.call_to_action_btn_label}}">
+    </label>
+</div>
+
+<button class="btn inline">Сохранить</button>

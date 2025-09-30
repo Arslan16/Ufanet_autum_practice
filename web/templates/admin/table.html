@@ -1,6 +1,7 @@
 <div id="tableContainer">
     <table>
         <thead>
+            <th>Подробнее</th>
             {% for column in columns %}
                 <th>{{ column }}</th>
             {% endfor %}
@@ -8,6 +9,7 @@
         <tbody>
             {% for row in rows %}
                 <tr>
+                    <td><button class="btn trigger" data-card-id="{{ row['id'] }}">Подробнее</button></td>
                     {% for column in columns %}
                         <td>{{ row[column] }}</td>
                     {% endfor %}

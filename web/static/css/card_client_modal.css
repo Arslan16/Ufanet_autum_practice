@@ -1,0 +1,47 @@
+/* убираем нижний ползунок прокрутки */
+body {
+    overflow-x: hidden;
+}
+
+/* фон нашего модального окна */
+.modalBackground {
+    display: none;
+    background: rgba(37, 37, 37, 0.244);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    /* указываем z-индекс для корректного наслаивания */
+    z-index: 1;
+}
+
+/* позиционирование самого модального окна */
+.modalActive {
+    position: absolute;
+    width: 50vh;
+    height: 70vh;
+    top: 10vh;
+    left: calc(50% - 175px);
+    border-radius: 10px;
+    background-color: rgb(255, 255, 255);
+    cursor: default;
+    padding: 40px 20px;
+    overflow-x: scroll;
+}
+
+/* кнопочка закрытия модального окна */
+.modalClose {
+    font-family: var(--font-regular);
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+
+
+/* делаем позиционирование внутренних элементов относительно модального окна */
+.modalWindow {
+    position: relative;
+}

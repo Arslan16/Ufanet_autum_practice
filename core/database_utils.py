@@ -63,7 +63,9 @@ async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[
                 CardsTable.obtain_method_description,
                 CardsTable.validity_period,
                 CardsTable.about_partner,
-                CardsTable.promocode
+                CardsTable.promocode,
+                CardsTable.call_to_action_link,
+                CardsTable.call_to_action_btn_label
             ).where(CardsTable.id == card_id
         )
         result = await session.execute(stmt)
@@ -87,4 +89,33 @@ async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> li
     except Exception as exc:
         logger.error(exc)
         return []
+
+
+async def get_full_card_info_for_admin_by_card_id(card_id: int, session: AsyncSession):
+    """
+    Возвращает словарь с информацией о конкретной карточке по ее id с полной информацией о ней для редактирования на страницу админа\n
+    Если карточки нет возвращает пустой словарь
+
+    :param card_id: Идентификатор карточки cards.id
+    :param session: Асинхронная сессия SQLAlchemy
+    """
+    try:
+        stmt = select(
+                CardsTable.category_id,
+                CardsTable.company_id,
+                CardsTable.main_label,
+                CardsTable.description_under_label,
+                CardsTable.obtain_method_description,
+                CardsTable.validity_period,
+                CardsTable.about_partner,
+                CardsTable.promocode,
+                CardsTable.call_to_action_link,
+                CardsTable.call_to_action_btn_label
+            ).where(CardsTable.id == card_id
+        )
+        result = await session.execute(stmt)
+        return dict(result.mappings().first())
+    except Exception as exc:
+        logger.error(exc)
+        return {}
 
