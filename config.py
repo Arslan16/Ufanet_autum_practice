@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 from dotenv import load_dotenv, dotenv_values as get_dotenv_values
@@ -12,10 +12,10 @@ load_dotenv()
 dotenv_values: dict[str, str] = get_dotenv_values()
 "Переменные окружения .env"
 
-CURRENT_DIR: str = str(os.path.dirname(os.path.abspath(__file__)))
+CURRENT_DIR: Path = Path(__file__).resolve().parent
 "Абсолютный путь к текущей папке"
 
-PROJECT_NAME: str = (CURRENT_DIR).split("/" if "/" in CURRENT_DIR else "\\")[-1]
+PROJECT_NAME: str = CURRENT_DIR.name
 "Имя проекта(Текущая папка) для создания веб путей (root_path)"
 
 ASYNC_ENGINE: AsyncEngine = create_async_engine(
@@ -30,10 +30,10 @@ ASYNC_ENGINE: AsyncEngine = create_async_engine(
 )
 "Асинхронный движок для соединения с базой данных"
 
-STATIC_FILES: StaticFiles  = StaticFiles(directory=os.path.join(f"{CURRENT_DIR}/web", "static"))
+STATIC_FILES: StaticFiles  = StaticFiles(directory=CURRENT_DIR / "web" / "static")
 "Путь к папке, в которой лежат статичные файлы(css/js)"
 
-TEMPLATES: Jinja2Templates = Jinja2Templates(directory=os.path.join(f"{CURRENT_DIR}/web", "templates"))
+TEMPLATES: Jinja2Templates = Jinja2Templates(directory=CURRENT_DIR / "web" / "templates")
 "Путь к папке, в которой лежат шаблоны страниц(html)"
 
 HOST: str = dotenv_values.get("HOST", "localhost")

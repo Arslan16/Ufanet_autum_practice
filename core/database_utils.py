@@ -34,3 +34,22 @@ async def get_all_cards_in_category_with_short_description(category_id: int, ses
     except Exception as exc:
         logger.error(exc)
         return []
+
+
+async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[str, Any]:
+    try:
+        stmt = select(
+                CardsTable.main_label,
+                CardsTable.description_under_label,
+                CardsTable.obtain_method_description,
+                CardsTable.validity_period,
+                CardsTable.about_partner,
+                CardsTable.promocode
+            ).where(CardsTable.id == card_id
+        )
+        result = await session.execute(stmt)
+        return dict(result.mappings().first())
+    except Exception as exc:
+        logger.error(exc)
+        return {}
+

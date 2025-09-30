@@ -1,11 +1,37 @@
 {% extends "client/base.html" %}
 
-{% block title %}Моя страница{% endblock %}
+{% block links%} 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/cards.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/card_modal.css') }}">
+{% endblock %}
+
+{% block modal %}
+    <div class="modalBackground">
+        <div class="modalActive">
+            <div class="modalClose">
+                <i class="bi bi-x-lg"></i>
+            </div>
+            <div class="modalWindow"></div>
+        </div>
+    </div>
+{% endblock %}
 
 {% block content %}
     {% for card in cards %}
-        <div class="card">
-            <h3> {{ card.main_label }} </h3>
+        <div class="card trigger" data-card-id="{{ card.id }}">
+            <div class="cardDescription">
+                <h2> {{ card.main_label }} </h2>
+                <p> {{ card.description_under_label }}</p>
+            </div>
+            <div class="companyDescription">
+                <h4>{{ card.company_name }}</h4>
+                <p>{{ card.company_short_description }}</p>
+            </div>
         </div>
     {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', path='js/cards.js') }}"></script>
 {% endblock %}

@@ -5,11 +5,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/base.css') }}">
+    {% block links %}{% endblock%}
     <title>Centered Card</title>
 </head>
-
 <body>
     <div class="stage">
+        {% block modal %}{% endblock%}
         <div class="card">
             {% block content %}{% endblock %}
         </div>

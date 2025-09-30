@@ -15,3 +15,7 @@ wheels/
 # Uv files
 .python-version
 uv.lock
+
+# Test/Experimental Files
+web/templates/test
+web/handlers/test_handlers.py

@@ -1,0 +1,16 @@
+.cardDescription p {
+    font-size: medium;
+}
+
+.companyDescription {
+    background-color: rgb(195, 253, 205);
+    border-radius: 10px;
+    padding-left: 3vh;
+}
+
+.companyDescription p {
+    font-size: small;
+}
+
+
+

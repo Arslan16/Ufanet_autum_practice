@@ -1,10 +1,13 @@
 import uvicorn
+import logging
+import sys
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import BaseTable
 from web.handlers.client_handlers import client_rt
+from web.handlers.test_handlers import test_rt
 from config import STATIC_FILES, HOST, PORT, PROJECT_NAME, ASYNC_ENGINE
 
 
@@ -31,9 +34,11 @@ app: FastAPI = FastAPI(
 
 app.mount("/static", STATIC_FILES, "static")
 app.include_router(client_rt)
+app.include_router(test_rt)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
     if HOST == "localhost":
         uvicorn.run(app, host=HOST, port=int(PORT))
     else:
