@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import close_all_sessions
 from core.models import BaseTable
 from web.handlers.client_handlers import client_rt
 from web.handlers.admin_handlers import admin_rt
-from web.handlers.test_handlers import test_rt
+#from web.handlers.test_handlers import test_rt
 from config import STATIC_FILES, HOST, PORT, PROJECT_NAME, ASYNC_ENGINE
 
 
@@ -36,7 +36,7 @@ app: FastAPI = FastAPI(
 app.mount("/static", STATIC_FILES, "static")
 app.include_router(client_rt)
 app.include_router(admin_rt)
-app.include_router(test_rt)
+#app.include_router(test_rt)
 
 
 if __name__ == '__main__':

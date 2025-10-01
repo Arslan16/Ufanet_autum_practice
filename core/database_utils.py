@@ -138,3 +138,15 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
         return False
 
 
+async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool:
+    try:
+        new_row = table(
+            **data
+        )
+        session.add(new_row)
+        await session.commit()
+        return True
+    except Exception as exc:
+        logger.error(exc)
+        return False
+

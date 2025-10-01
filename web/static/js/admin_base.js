@@ -1,3 +1,81 @@
+async function modalSaveOnClick(row_id) {
+    const modalBackground = document.getElementsByClassName("modalBackground")[0];
+    const modalWindow = document.getElementsByClassName("modalWindow")[0];
+    var dataToSave = {};
+    modalWindow.querySelectorAll("label").forEach(label => {
+        var labelText = label.childNodes[0].textContent.trim();
+        var textArea = label.querySelector("textarea").value;
+        dataToSave[labelText] = textArea;
+    })
+
+    const response = await fetch("./save_row", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"id": row_id, "tablename": modalWindow.getAttribute("data-tablename"), "data": dataToSave})
+    });
+
+    if (response.ok) {
+        modalBackground.style.display = "none";
+    } else {
+        console.log(response.text());
+    }
+}
+
+async function modalCreateOnClick() {
+    const modalBackground = document.getElementsByClassName("modalBackground")[0];
+    const modalWindow = document.getElementsByClassName("modalWindow")[0];
+    var dataToSave = {};
+    modalWindow.querySelectorAll("label").forEach(label => {
+        var labelText = label.childNodes[0].textContent.trim();
+        var textArea = label.querySelector("textarea").value;
+        dataToSave[labelText] = textArea;
+    })
+    const response = await fetch("./create_row", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"tablename": modalWindow.getAttribute("data-tablename"), "data": dataToSave})
+    });
+
+    if (response.ok) {
+        modalBackground.style.display = "none";
+    } else {
+        console.log(response.text());
+    }
+}
+
+
+async function openModalToCreateRow(btn) {
+    const modalBackground = document.getElementsByClassName("modalBackground")[0];
+    const modalClose = document.getElementsByClassName("modalClose")[0];
+    const modalWindow = document.getElementsByClassName("modalWindow")[0];
+    const response = await fetch("./get_modal_to_create_row", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"tablename": btn.getAttribute("data-tablename")})
+    });
+
+    if (response.ok) {
+        // делаем модальное окно видимым
+        modalBackground.style.display = "block";
+        modalWindow.innerHTML = await response.text();
+        modalWindow.setAttribute("data-tablename", btn.getAttribute("data-tablename"))
+    } else {
+        console.log(response.text());
+    }
+
+    // нажатие на крестик закрытия модального окна
+    modalClose.addEventListener("click", function () {
+        modalBackground.style.display = "none";
+    });
+};
+
+
 document.querySelectorAll(".tableSelectorBtn").forEach(btn => {
     btn.addEventListener("click", async function () {
         const tablePlaceHolder = document.getElementById("tablePlaceHolder");
@@ -56,31 +134,3 @@ document.querySelectorAll(".tableSelectorBtn").forEach(btn => {
     })
 })
 
-async function modalSaveOnClick(row_id) {
-    const modalBackground = document.getElementsByClassName("modalBackground")[0];
-    const modalWindow = document.getElementsByClassName("modalWindow")[0];
-    var dataToSave = {};
-    modalWindow.querySelectorAll("label").forEach(label => {
-        var labelText = label.childNodes[0].textContent.trim();
-        var textArea = label.querySelector("textarea").value;
-        dataToSave[labelText] = textArea;
-    })
-    console.log(dataToSave);
-    const response = await fetch("./save_row", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({"id": row_id, "tablename": modalWindow.getAttribute("data-tablename"), "data": dataToSave})
-    });
-
-    if (response.ok) {
-        modalBackground.style.display = "none";
-    } else {
-        console.log(response.text());
-    }
-}
-
-async function modalCreateOnClick() {
-    
-}

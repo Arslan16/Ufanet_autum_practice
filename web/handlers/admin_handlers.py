@@ -6,10 +6,10 @@ from loguru import logger
 
 from config import TEMPLATES
 from core.models import BaseTable, CardsTable, CompaniesTable, CategoriesTable, tables, russian_field_names
-from core.database_utils import get_all_rows_from_table, get_full_row_for_admin_by_id, update_row_by_id
+from core.database_utils import get_all_rows_from_table, get_full_row_for_admin_by_id, update_row_by_id, create_row
 from web.utils import map_columns_to_table_types
 from ..dependencies import async_session_generator
-from ..schemas import GetTableDataModel, GetTableRowModel, SaveRowModel
+from ..schemas import GetTableDataModel, GetTableRowModel, SaveRowModel, CreateRowGetModalModel, CreateRowModel
 
 
 admin_rt = APIRouter(prefix="/admin")
@@ -31,7 +31,7 @@ async def get_table_data(request: Request, data: GetTableDataModel, session: Asy
         "Список словарей отражающих запись в базе данных по принципу ключ:столбец значение:значение столбца"
         
         logger.debug(f"{rows=}")
-        return TEMPLATES.TemplateResponse(request, "admin/table.html", {"columns": [column.name for column in table.__table__.columns], "descriptions": russian_field_names, "rows": rows})
+        return TEMPLATES.TemplateResponse(request, "admin/table.html", {"tablename": data.tablename, "columns": [column.name for column in table.__table__.columns], "descriptions": russian_field_names, "rows": rows})
 
 
 @admin_rt.post("/get_table_row")
@@ -47,9 +47,29 @@ async def get_table_row_post_handler(request: Request, data: GetTableRowModel, s
 @admin_rt.post("/save_row")
 async def save_row_post_handler(data: SaveRowModel, session: AsyncSession = Depends(async_session_generator)):
     if tables.get(data.tablename) is not None:
-        normalized_data = map_columns_to_table_types(tables.get(data.tablename), data.data)
-        update_res = await update_row_by_id(data.id, tables.get(data.tablename), normalized_data, session)
+        normalized_data: dict[str, Any] = map_columns_to_table_types(tables.get(data.tablename), data.data)
+        update_res: bool = await update_row_by_id(data.id, tables.get(data.tablename), normalized_data, session)
         if update_res is True:
+            return JSONResponse({"ok": True}, 200)
+        else:
+            return JSONResponse({"ok": False}, 500)
+
+
+@admin_rt.post("/get_modal_to_create_row")
+async def create_row_get_handler(request: Request, data: CreateRowGetModalModel):
+    if tables.get(data.tablename) is not None:
+        table: BaseTable = tables.get(data.tablename)
+        columns = [column.name for column in table.__table__.columns]
+        logger.debug(f"{columns=}")
+        return TEMPLATES.TemplateResponse(request, "admin/cards_modal_create.html", {"descriptions": russian_field_names, "columns": columns})
+
+
+@admin_rt.post("/create_row")
+async def create_row_post_handler(data: CreateRowModel, session: AsyncSession = Depends(async_session_generator)):
+    if tables.get(data.tablename) is not None:
+        normalized_data: dict[str, Any] = map_columns_to_table_types(tables.get(data.tablename), data.data)
+        res = await create_row(tables.get(data.tablename), normalized_data, session)
+        if res is True:
             return JSONResponse({"ok": True}, 200)
         else:
             return JSONResponse({"ok": False}, 500)

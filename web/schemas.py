@@ -19,3 +19,12 @@ class SaveRowModel(BaseModel):
     tablename: str
     id: int
     data: dict[str, Any]
+
+
+class CreateRowGetModalModel(BaseModel):
+    tablename: str
+
+
+class CreateRowModel(BaseModel):
+    tablename: str
+    data: dict[str, Any]
