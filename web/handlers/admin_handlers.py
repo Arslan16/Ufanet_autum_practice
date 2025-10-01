@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Request, Depends
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
 from loguru import logger
 
 from config import TEMPLATES
-from core.models import BaseTable, CardsTable, CompaniesTable, CategoriesTable, dict_tables
-from core.database_utils import get_all_rows_from_table, get_full_card_info_for_admin_by_card_id
+from core.models import BaseTable, CardsTable, CompaniesTable, CategoriesTable, tables, russian_field_names
+from core.database_utils import get_all_rows_from_table, get_full_row_for_admin_by_id, update_row_by_id
+from web.utils import map_columns_to_table_types
 from ..dependencies import async_session_generator
-from ..schemas import GetTableDataModel, CardPydanticModel
+from ..schemas import GetTableDataModel, GetTableRowModel, SaveRowModel
 
 
 admin_rt = APIRouter(prefix="/admin")
@@ -21,21 +23,33 @@ async def index_get_handler(request: Request):
 
 @admin_rt.post("/get_table_data")
 async def get_table_data(request: Request, data: GetTableDataModel, session: AsyncSession = Depends(async_session_generator)):
-    if dict_tables.get(data.tablename) is not None:
-        table: BaseTable = dict_tables.get(data.tablename)
+    if tables.get(data.tablename) is not None:
+        table: BaseTable = tables.get(data.tablename)
         "Модель таблицы базы данных извлеченная по ее названию"
         
         rows: list[dict[str, Any]] = await get_all_rows_from_table(table, session)
         "Список словарей отражающих запись в базе данных по принципу ключ:столбец значение:значение столбца"
         
         logger.debug(f"{rows=}")
-        return TEMPLATES.TemplateResponse(request, "admin/table.html", {"columns": [column.name for column in table.__table__.columns], "rows": rows})
+        return TEMPLATES.TemplateResponse(request, "admin/table.html", {"columns": [column.name for column in table.__table__.columns], "descriptions": russian_field_names, "rows": rows})
 
 
-@admin_rt.post("/get_card_info")
-async def get_card_info_post_handler(request: Request, data: CardPydanticModel, session: AsyncSession = Depends(async_session_generator)):
+@admin_rt.post("/get_table_row")
+async def get_table_row_post_handler(request: Request, data: GetTableRowModel, session: AsyncSession = Depends(async_session_generator)):
     "Обрабатывает запрос на получение информации о карточке. Выдает отрендеренное модальное окно"
-    card_info: dict[str, Any] = await get_full_card_info_for_admin_by_card_id(data.card_id, session)
-    "Информация о конкретной карточке извлеченной по ее ид, содержащая полуню информацию о ней для редактирования админом"
-    logger.debug(f"{card_info=}")
-    return TEMPLATES.TemplateResponse(request, "admin/cards_modal.html", {"card": card_info})
+    if tables.get(data.tablename) is not None:
+        row_info: dict[str, Any] = await get_full_row_for_admin_by_id(data.id, tables[data.tablename], session)
+        "Информация о конкретной карточке извлеченной по ее ид, содержащая полуню информацию о ней для редактирования админом"
+        logger.debug(f"{row_info=}")
+        return TEMPLATES.TemplateResponse(request, "admin/cards_modal_save.html", {"row_id": data.id, "row_info": row_info, "descriptions": russian_field_names, "columns": row_info.keys()})
+
+
+@admin_rt.post("/save_row")
+async def save_row_post_handler(data: SaveRowModel, session: AsyncSession = Depends(async_session_generator)):
+    if tables.get(data.tablename) is not None:
+        normalized_data = map_columns_to_table_types(tables.get(data.tablename), data.data)
+        update_res = await update_row_by_id(data.id, tables.get(data.tablename), normalized_data, session)
+        if update_res is True:
+            return JSONResponse({"ok": True}, 200)
+        else:
+            return JSONResponse({"ok": False}, 500)

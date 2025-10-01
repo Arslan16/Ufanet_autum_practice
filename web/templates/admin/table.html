@@ -3,7 +3,7 @@
         <thead>
             <th>Подробнее</th>
             {% for column in columns %}
-                <th>{{ column }}</th>
+                <th>{{ descriptions[column]|default(column) }}</th>
             {% endfor %}
         </thead>
         <tbody>

@@ -6,17 +6,6 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/card_admin_modal.css') }}">
 {% endblock %}
 
-{% block modal %}
-    <div class="modalBackground">
-        <div class="modalActive">
-            <div class="modalClose">
-                <i class="bi bi-x-lg"></i>
-            </div>
-            <div class="modalWindow"></div>
-        </div>
-    </div>
-{% endblock %}
-
 {% block content %}
     {% for card in cards %}
         <div class="card trigger" data-card-id="{{ card.id }}">

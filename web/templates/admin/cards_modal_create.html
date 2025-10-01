@@ -1,0 +1,11 @@
+{% for column in columns %}
+    <div>
+        <label>{{ descriptions[column] or column }}
+            <textarea>{{ row_info[column] or '' }}</textarea>
+        </label>
+    </div>
+{% endfor %}
+
+<div class="btn_container">
+    <button class="btn" onclick="modalCreateOnClick()">Сохранить</button>
+</div>

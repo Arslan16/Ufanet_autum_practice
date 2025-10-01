@@ -49,9 +49,30 @@ class CardsTable(BaseTable):
     company: Mapped["CompaniesTable"] = relationship(back_populates="cards")
 
 
-dict_tables: dict[str, BaseTable] = {
+tables: dict[str, BaseTable] = {
     CompaniesTable.__tablename__ : CompaniesTable,
     CategoriesTable.__tablename__: CategoriesTable,
     CardsTable.__tablename__: CardsTable
 }
 "Словарь, который под именем таблицы __tablename__ содержит ссылку на ее класс"
+
+russian_field_names: dict[str, str] = {
+    "id": "ИД",
+    "name": "Наименование",
+    CompaniesTable.short_description.name: "Описание",
+    CardsTable.category_id.name: "ИД Категории",
+    CardsTable.company_id.name: "ИД Компании",
+    CardsTable.main_label.name: "Заголовок карточки",
+    CardsTable.description_under_label.name: "Описание под заголовком",
+    CardsTable.obtain_method_description.name: "Метод получения",
+    CardsTable.validity_period.name: "Срок действия",
+    CardsTable.about_partner.name: "О партнере",
+    CardsTable.promocode.name: "Промокод",
+    CardsTable.call_to_action_link.name: "Ссылка в кнопке карточки",
+    CardsTable.call_to_action_btn_label.name: "Надпись на кнопке в карточке"
+}
+"Русские названия полей таблиц. Ключ - оригинальное название столбца. Значение - перевод на русский"
+
+reverse_russian_field_names: dict[str, str] = {v : k for k, v in russian_field_names.items()}
+"Обратный словарь для перевода с русского на английский. Ключ - перевод на русский. Значение - оригинальное название столбца"
+
