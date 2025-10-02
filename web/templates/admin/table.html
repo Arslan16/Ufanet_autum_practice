@@ -1,23 +1,21 @@
-<div id="tableContainer">
-    <table>
-        <thead>
-            <th>Подробнее</th>
-            {% for column in columns %}
-                <th>{{ descriptions[column]|default(column) }}</th>
-            {% endfor %}
-        </thead>
-        <tbody>
-            {% for row in rows %}
-                <tr>
-                    <td><button class="btn trigger" data-card-id="{{ row['id'] }}">Подробнее</button></td>
-                    {% for column in columns %}
-                        <td>{{ row[column] }}</td>
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<table>
+    <thead>
+        <th>Подробнее</th>
+        {% for column in columns %}
+            <th>{{ descriptions[column]|default(column) }}</th>
+        {% endfor %}
+    </thead>
+    <tbody>
+        {% for row in rows %}
+            <tr data-row-id="{{ row.id }}">
+                <td><button class="btn trigger" onclick="openModalToSaveRow('{{ row.id }}', '{{ tablename }}')">Подробнее</button></td>
+                {% for column in columns %}
+                    <td>{{ row[column] }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
 <div class="inline" id="tableButtonsBar">
-    <button class="btn" onclick="openModalToCreateRow(this)" id="createRowBtn" data-tablename="{{ tablename }}">Новая запись</button>
+    <button class="btn" onclick="openModalToCreateRow('{{ tablename }}')" id="createRowBtn">Новая запись</button>
 </div>

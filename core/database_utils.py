@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
 from typing import Any
@@ -138,15 +138,26 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
         return False
 
 
-async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool:
+async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> int | bool:
     try:
         new_row = table(
             **data
         )
         session.add(new_row)
         await session.commit()
-        return True
+        await session.refresh(new_row)
+        return new_row.id
     except Exception as exc:
         logger.error(exc)
         return False
 
+
+async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bool:
+    try:
+        stmt = delete(table).where(table.id == row_id)
+        await session.execute(stmt)
+        await session.commit()
+        return True
+    except Exception as exc:
+        logger.error(exc)
+        return False

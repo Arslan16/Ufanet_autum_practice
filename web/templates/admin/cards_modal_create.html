@@ -1,9 +1,11 @@
 {% for column in columns %}
-    <div>
-        <label>{{ descriptions[column] or column }}
-            <textarea></textarea>
-        </label>
-    </div>
+    {% if column != 'id' %}
+        <div>
+            <label>{{ descriptions[column] or column }}
+                <textarea></textarea>
+            </label>
+        </div>
+    {% endif %}
 {% endfor %}
 
 <div class="btn_container">

@@ -1,136 +1,70 @@
-async function modalSaveOnClick(row_id) {
-    const modalBackground = document.getElementsByClassName("modalBackground")[0];
-    const modalWindow = document.getElementsByClassName("modalWindow")[0];
-    var dataToSave = {};
-    modalWindow.querySelectorAll("label").forEach(label => {
-        var labelText = label.childNodes[0].textContent.trim();
-        var textArea = label.querySelector("textarea").value;
-        dataToSave[labelText] = textArea;
-    })
-
-    const response = await fetch("./save_row", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({"id": row_id, "tablename": modalWindow.getAttribute("data-tablename"), "data": dataToSave})
-    });
-
-    if (response.ok) {
-        modalBackground.style.display = "none";
-    } else {
-        console.log(response.text());
-    }
-}
-
-async function modalCreateOnClick() {
-    const modalBackground = document.getElementsByClassName("modalBackground")[0];
-    const modalWindow = document.getElementsByClassName("modalWindow")[0];
-    var dataToSave = {};
-    modalWindow.querySelectorAll("label").forEach(label => {
-        var labelText = label.childNodes[0].textContent.trim();
-        var textArea = label.querySelector("textarea").value;
-        dataToSave[labelText] = textArea;
-    })
-    const response = await fetch("./create_row", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({"tablename": modalWindow.getAttribute("data-tablename"), "data": dataToSave})
-    });
-
-    if (response.ok) {
-        modalBackground.style.display = "none";
-    } else {
-        console.log(response.text());
-    }
-}
-
-
-async function openModalToCreateRow(btn) {
+function openModal(innerHTML, tableName) {
     const modalBackground = document.getElementsByClassName("modalBackground")[0];
     const modalClose = document.getElementsByClassName("modalClose")[0];
     const modalWindow = document.getElementsByClassName("modalWindow")[0];
+    // делаем модальное окно видимым
+    modalBackground.style.display = "block";
+    modalWindow.innerHTML = innerHTML;
+    modalWindow.tableName = tableName;
+    // нажатие на крестик закрытия модального окна
+    modalClose.addEventListener("click", function () {
+        modalBackground.style.display = "none";
+    });
+    modalBackground.addEventListener("click", function (event) {
+        if (event.target === modalBackground) {
+            modalBackground.style.display = "none";
+        }
+    });
+}
+
+async function openModalToCreateRow(tableName) {
     const response = await fetch("./get_modal_to_create_row", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({"tablename": btn.getAttribute("data-tablename")})
+        body: JSON.stringify({"tablename": tableName})
     });
 
     if (response.ok) {
-        // делаем модальное окно видимым
-        modalBackground.style.display = "block";
-        modalWindow.innerHTML = await response.text();
-        modalWindow.setAttribute("data-tablename", btn.getAttribute("data-tablename"))
+        openModal(await response.text(), tableName)
     } else {
-        console.log(response.text());
+        console.log(await response.text());
     }
-
-    // нажатие на крестик закрытия модального окна
-    modalClose.addEventListener("click", function () {
-        modalBackground.style.display = "none";
-    });
 };
 
 
-document.querySelectorAll(".tableSelectorBtn").forEach(btn => {
-    btn.addEventListener("click", async function () {
-        const tablePlaceHolder = document.getElementById("tablePlaceHolder");
-        const response = await fetch("./get_table_data", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({"tablename": btn.getAttribute("data-tablename")})
-        });
+async function openModalToSaveRow(rowId, tableName) {
+    console.log(`openModalToSaveRow ${rowId} ${tableName}`)
+    const response = await fetch("./get_table_row", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"id": rowId, "tablename": tableName})
+    });
 
-        if (response.ok) {
-            tablePlaceHolder.innerHTML = await response.text();
-            const tableContainer = document.getElementById("tableContainer");
-            tableContainer.querySelector("tbody").querySelectorAll(".trigger").forEach(trigger => {
-                // привязываем необходимые элементы
-                const modalBackground = document.getElementsByClassName("modalBackground")[0];
-                const modalClose = document.getElementsByClassName("modalClose")[0];
-                const modalWindow = document.getElementsByClassName("modalWindow")[0];
-                // функция для корректировки положения body при появлении ползунка прокрутки
-                // событие нажатия на триггер открытия модального окна
-                trigger.addEventListener("click", async function () {
-                    // делаем модальное окно видимым
-                    modalBackground.style.display = "block";
-                    const response = await fetch("./get_table_row", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({"id": trigger.getAttribute("data-card-id"), "tablename": btn.getAttribute("data-tablename")})
-                    });
+    if (response.ok) {
+        openModal(await response.text(), tableName)
+    } else {
+        console.log(response.text());
+    }
+};
 
-                    if (response.ok) {
-                        modalWindow.innerHTML = await response.text();
-                        modalWindow.setAttribute("data-tablename", btn.getAttribute("data-tablename"))
-                    } else {
-                        console.log(response.text());
-                    }
-                });
 
-                // нажатие на крестик закрытия модального окна
-                modalClose.addEventListener("click", function () {
-                    modalBackground.style.display = "none";
-                });
+async function fillTable(tableName) {
+    const tablePlaceHolder = document.getElementById("tablePlaceHolder");
+    const response = await fetch("./get_table_data", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({"tablename": tableName})
+    });
 
-                // закрытие модального окна на зону вне окна, т.е. на фон
-                modalBackground.addEventListener("click", function (event) {
-                    if (event.target === modalBackground) {
-                        modalBackground.style.display = "none";
-                    }
-                });
-            })
-        } else {
-            console.log(response.text());
-        }
-    })
-})
-
+    if (response.ok) {
+        tablePlaceHolder.innerHTML = await response.text();
+    } else {
+        console.log(response.text());
+    }
+}

@@ -28,3 +28,9 @@ class CreateRowGetModalModel(BaseModel):
 class CreateRowModel(BaseModel):
     tablename: str
     data: dict[str, Any]
+
+
+class DeleteRowModel(BaseModel):
+    tablename: str
+    id: int
+

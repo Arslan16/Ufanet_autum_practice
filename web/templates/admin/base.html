@@ -24,7 +24,7 @@
                 <h3>Таблицы:</h3>
                 <ul>
                     {% for table in tables.keys() %}
-                        <li data-tablename="{{ tables[table] }}" class="btn tableSelectorBtn">{{ table }}</li>
+                        <li><button class="btn" onclick="fillTable('{{ tables[table] }}')">{{ table }}</button></li>
                     {% endfor %}
                 </ul>
             </div>
@@ -33,5 +33,6 @@
     </div>
     {% block scripts %}{% endblock %}
     <script src="{{ url_for('static', path='js/admin_base.js') }}"></script>
+    <script src="{{ url_for('static', path='js/modal_window.js') }}"></script>
 </body>
 </html>
