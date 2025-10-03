@@ -118,15 +118,15 @@ async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: A
         return {}
 
 
-async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool:
+async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool | str:
     """
     Обновляет информацию о записи в таблице по ее id, 
 
     :param row_id: Идентификатор записи id
     :param table: Ссылка на модель, представляющую таблицу
     :param session: Асинхронная сессия SQLAlchemy
-    :rtype: bool
-    :return: True если обновление успешно иначе False
+    :rtype: bool | str
+    :return: True если обновление успешно. Иначе возвращает текст ошибки
     """
     try:
         stmt = update(table).values(**data).where(table.id == row_id)
@@ -135,10 +135,19 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
         return True
     except Exception as exc:
         logger.error(exc)
-        return False
+        return str(exc)
 
 
-async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> int | bool:
+async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> int | str:
+    """
+    Создает запись в таблице table по введенным data 
+
+    :param table: Ссылка на модель, представляющую таблицу
+    :param data: данные для новой записи в формате ключ - столбец таблицы.
+    :param session: Асинхронная сессия SQLAlchemy
+    :rtype: int | str
+    :return: id созданной записи. Иначе возвращает текст ошибки
+    """
     try:
         new_row = table(
             **data
@@ -149,10 +158,19 @@ async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSessi
         return new_row.id
     except Exception as exc:
         logger.error(exc)
-        return False
+        return str(exc)
 
 
-async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bool:
+async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bool | str:
+    """
+    Создает запись в таблице table по введенным data 
+
+    :param table: Ссылка на модель, представляющую таблицу
+    :param data: данные для новой записи в формате ключ - столбец таблицы.
+    :param session: Асинхронная сессия SQLAlchemy
+    :rtype: bool | str
+    :return: True при успешном удалении. Иначе возвращает текст ошибки
+    """
     try:
         stmt = delete(table).where(table.id == row_id)
         await session.execute(stmt)
@@ -160,4 +178,4 @@ async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bo
         return True
     except Exception as exc:
         logger.error(exc)
-        return False
+        return str(exc)

@@ -81,6 +81,7 @@ p {margin:0 0 16px 0; color:#344054}
     font-weight:600;
     cursor:pointer;
     font-size:14px;
+    text-align: center;
 }
 
 .muted {

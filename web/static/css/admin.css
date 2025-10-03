@@ -27,11 +27,11 @@ ul li {
     flex-direction: column;
     max-height: 30vh;
     padding-bottom: 2vh;
+    min-height: 50vh;
 }
 
 #tablePlaceHolder table {
-    /* width: 100%; */
-    flex: 1;
+    /* flex: 1; */
     overflow: auto;
     border-collapse: collapse;
     table-layout: auto;

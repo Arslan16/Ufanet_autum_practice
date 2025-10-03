@@ -41,5 +41,5 @@ async def get_card_info_post_handler(request: Request, data: CardPydanticModel, 
     card_info: dict[str, Any] = await get_card_info_by_card_id(data.card_id, session)
     "Словарь с информацией о конкретной карточке извлеченной по ее id в бд"
     logger.debug(f"{card_info=}")
-    return TEMPLATES.TemplateResponse(request, "client/cards_modal.html", {"card": card_info})
+    return TEMPLATES.TemplateResponse(request, "client/modal.html", {"card": card_info})
 

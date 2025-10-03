@@ -1,2 +1,41 @@
-{% extends "admin/base.html" %}
-
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/base.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/admin.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='css/admin_modal.css') }}">
+    {% block links %}{% endblock%}
+    <title>Admin Panel</title>
+</head>
+<body>
+    <div class="modalBackground">
+        <div class="modalActive">
+            <div class="modalClose">
+                <i class="bi bi-x-lg"></i>
+            </div>
+            <div class="modalWindow"></div>
+        </div>
+        <div class="modalNotification">
+            <div class="modal"></div>
+        </div>
+    </div>
+    <div class="stage">
+        <div class="inline">
+            <div id="tablesList" class="card">
+                <h3>Таблицы:</h3>
+                <ul>
+                    {% for table in tables.keys() %}
+                        <li><button class="btn" onclick="fillTable('{{ tables[table] }}')">{{ table }}</button></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="table card" id="tablePlaceHolder"></div>
+        </div>
+    </div>
+    {% block scripts %}{% endblock %}
+    <script src="{{ url_for('static', path='js/admin_base.js') }}"></script>
+    <script src="{{ url_for('static', path='js/modal.js') }}"></script>
+</body>
+</html>

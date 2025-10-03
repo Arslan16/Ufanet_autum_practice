@@ -17,12 +17,25 @@ body {
     width: 50vh;
     height: 70vh;
     top: 10vh;
-    left: calc(50% - 175px);
+    left: calc(40%);
     border-radius: 10px;
     background-color: rgb(255, 255, 255);
     cursor: default;
     padding: 40px 20px;
     overflow-x: scroll;
+}
+
+.modalNotification {
+    display: none;
+    position: absolute;
+    width: 35vh;
+    height: 50vh;
+    top: 15vh;
+    left: calc(45%);
+    border: 1px solid black;
+    background-color: rgb(255, 255, 255);
+    cursor: default;
+    padding: 40px 20px;
 }
 
 .modalClose {
@@ -42,6 +55,7 @@ body {
 .btn_container, .btn_container button {
     margin: auto;
     width: 100%;
+    text-align: center;
 }
 
 textarea {

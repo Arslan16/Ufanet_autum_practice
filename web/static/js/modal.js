@@ -40,6 +40,7 @@ async function modalSaveOnClick(row_id) {
 }
 
 async function modalCreateOnClick() {
+    const modalNotification = document.getElementsByClassName("modalNotification")[0];
     const modalBackground = document.getElementsByClassName("modalBackground")[0];
     const modalWindow = document.getElementsByClassName("modalWindow")[0];
     var dataToSave = {};
@@ -55,9 +56,8 @@ async function modalCreateOnClick() {
         },
         body: JSON.stringify({"tablename": modalWindow.tableName, "data": dataToSave})
     });
-
+    const response_json = await response.json();
     if (response.ok) {
-        const response_json = await response.json();
         dataToSave["ИД"] = response_json['id'];
         modalBackground.style.display = "none";
         const tbody = document.getElementById("tablePlaceHolder").querySelector("tbody");
@@ -70,7 +70,12 @@ async function modalCreateOnClick() {
             newCell.textContent = dataToSave[th.textContent] ?? ""
         })
     } else {
-        console.log(await response.text());
+        console.log(response_json);
+        modalNotification.style.display = "block";
+        modalNotification.innerHTML = response_json['error'] + `<br><button class="btn_container inline btn">Закрыть</button>`;
+        modalNotification.querySelector("button").addEventListener("click", function () {
+            modalNotification.style.display = "none";
+        })
     }
 }
 

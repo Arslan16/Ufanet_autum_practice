@@ -42,7 +42,7 @@ async def get_table_row_post_handler(request: Request, data: GetTableRowModel, s
         row_info: dict[str, Any] = await get_full_row_for_admin_by_id(data.id, table, session)
         "Информация о конкретной карточке извлеченной по ее ид, содержащая полуню информацию о ней для редактирования админом"
         logger.debug(f"{row_info=}")
-        return TEMPLATES.TemplateResponse(request, "admin/cards_modal_save.html", {"row_id": data.id, "row_info": row_info, "descriptions": russian_field_names, "columns": row_info.keys()})
+        return TEMPLATES.TemplateResponse(request, "admin/modal_save.html", {"row_id": data.id, "row_info": row_info, "descriptions": russian_field_names, "columns": row_info.keys()})
 
 
 @admin_rt.post("/save_row")
@@ -50,11 +50,11 @@ async def save_row_post_handler(data: SaveRowModel, session: AsyncSession = Depe
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
         normalized_data: dict[str, Any] = map_columns_to_table_types(table, data.data)
-        update_res: bool = await update_row_by_id(data.id, table, normalized_data, session)
+        update_res: bool | str = await update_row_by_id(data.id, table, normalized_data, session)
         if update_res is True:
             return JSONResponse({"ok": True}, 200)
         else:
-            return JSONResponse({"ok": False}, 500)
+            return JSONResponse({"ok": False, "error": update_res}, 500)
 
 
 @admin_rt.post("/get_modal_to_create_row")
@@ -63,7 +63,7 @@ async def create_row_get_handler(request: Request, data: CreateRowGetModalModel)
         table: BaseTable = tables.get(data.tablename)
         columns = [column.name for column in table.__table__.columns]
         logger.debug(f"{columns=}")
-        return TEMPLATES.TemplateResponse(request, "admin/cards_modal_create.html", {"descriptions": russian_field_names, "columns": columns})
+        return TEMPLATES.TemplateResponse(request, "admin/modal_create.html", {"descriptions": russian_field_names, "columns": columns})
 
 
 @admin_rt.post("/create_row")
@@ -71,11 +71,11 @@ async def create_row_post_handler(data: CreateRowModel, session: AsyncSession = 
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
         normalized_data: dict[str, Any] = map_columns_to_table_types(table, data.data)
-        new_id = await create_row(table, normalized_data, session)
+        new_id: int | str = await create_row(table, normalized_data, session)
         if isinstance(new_id, int):
             return JSONResponse({"ok": True, "id": new_id}, 200)
         else:
-            return JSONResponse({"ok": False}, 500)
+            return JSONResponse({"ok": False, "error": new_id}, 500)
 
 
 @admin_rt.post("/delete_row")
@@ -86,4 +86,4 @@ async def create_row_post_handler(data: DeleteRowModel, session: AsyncSession = 
         if del_res is True:
             return JSONResponse({"ok": True}, 200)
         else:
-            return JSONResponse({"ok": False}, 500)
+            return JSONResponse({"ok": False, "error": del_res}, 500)
