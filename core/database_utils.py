@@ -8,11 +8,18 @@ from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable
 
 async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
     """
-    Возвращает список словарей с данными категорий из БД.
+    Извлекает все категории из базы данных и возвращает их в виде списка словарей.
 
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: list[dict[str, Any]]
-    :return: Список словарей, где ключ = имя столбца, значение = значение столбца.
+    Функция:
+    - Выполняет асинхронный SQL-запрос к таблице категорий;
+    - Формирует список словарей, где каждый словарь представляет одну категорию;
+    - В случае ошибки логирует её и возвращает пустой список.
+
+    Args:
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
+
+    Returns:
+        list(dict[str, Any]): Список словарей, где ключи — имена столбцов таблицы (`id`, `name`), а значения — данные категорий.
     """
     try:
         stmt = select(CategoriesTable.id, CategoriesTable.name)
@@ -25,12 +32,22 @@ async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
 
 async def get_all_cards_in_category_with_short_description(category_id: int, session: AsyncSession) -> list[dict[str, Any]]:
     """
-    Извлекает карточки в категории с данными необходимыми для отображения в списке + имя и описание компании в каждой карточке
+    Извлекает карточки, относящиеся к указанной категории, с данными для отображения в списке.
 
-    :param category_id: Идентификатор категории. Таблица categories.id
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: list[dict[str, Any]]
-    :return: Список словарей, где ключ = имя столбца, значение = значение столбца.
+    Функция:
+    - Выполняет асинхронный SQL-запрос к таблице карточек (`CardsTable`);
+    - Присоединяет данные о компании из таблицы компаний (`CompaniesTable`);
+    - Формирует список словарей с полями карточки и краткой информацией о компании;
+    - Логирует ошибки и возвращает пустой список при исключениях.
+
+    Args:
+        category_id (int): Идентификатор категории (`categories.id`).
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
+
+    Returns:
+        list(dict[str, Any]): Список словарей, где каждый словарь содержит:
+            - `id`, `main_label`, `description_under_label` карточки;
+            - `company_name`, `company_short_description` компании.
     """
     try:
         stmt = select(
@@ -51,12 +68,29 @@ async def get_all_cards_in_category_with_short_description(category_id: int, ses
 
 async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[str, Any]:
     """
-    Извлекает информацию о конкретной карточке по ее id. Если карточки нет возвращает пустой словарь
+    Извлекает полную информацию о карточке по её идентификатору.
 
-    :param card_id: Идентификатор карточки cards.id
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: dict[str, Any]
-    :return: Словарь, где ключ = имя столбца, значение = значение столбца.
+    Функция:
+    - Выполняет асинхронный SQL-запрос к таблице карточек (`CardsTable`);
+    - Извлекает поля, необходимые для отображения в модальном окне;
+    - Логирует ошибки и возвращает пустой словарь при исключениях или если карточка не найдена.
+
+    Args:
+        card_id (int): Идентификатор карточки (`cards.id`).
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
+
+    Returns:
+        dict(str, Any): Словарь с полями карточки:
+            - `main_label`
+            - `description_under_label`
+            - `obtain_method_description`
+            - `validity_period`
+            - `about_partner`
+            - `promocode`
+            - `call_to_action_link`
+            - `call_to_action_btn_label`
+        
+        Пустой словарь, если карточка не найдена или произошла ошибка.
     """
     try:
         stmt = select(
@@ -79,12 +113,20 @@ async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[
 
 async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> list[dict[str, Any]]:
     """
-    Возвращает все строки из таблицы
+    Извлекает все строки из указанной таблицы базы данных.
 
-    :param table: Модель представляющая собой таблицу в базе данных
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: list[dict[str, Any]]
-    :return: Список словарей, где ключ = имя столбца, значение = значение столбца.
+    Функция:
+    - Определяет все столбцы таблицы через её модель (`table.__table__.columns`);
+    - Выполняет асинхронный запрос к базе данных для получения всех записей;
+    - Логирует ошибки и возвращает пустой список при исключениях.
+
+    Args:
+        table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
+
+    Returns:
+        list(dict[str, Any]): Список словарей, где ключ = имя столбца, значение = значение столбца.
+        Пустой список, если таблица пуста или произошла ошибка.
     """
     try:
         stmt = select(*table.__table__.columns)
@@ -97,14 +139,22 @@ async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> li
 
 async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: AsyncSession) -> dict[str, Any]:
     """
-    Возвращает словарь с информацией о конкретной записи по ее id с полной информацией о ней для редактирования на страницу админа\n
-    Если записи нет возвращает пустой словарь
+    Извлекает полную информацию о конкретной записи из таблицы по её ID для редактирования в админ-панели.
 
-    :param row_id: Идентификатор записи id
-    :param table: Ссылка на модель, представляющую таблицу
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: dict[str, Any]
-    :return: Словарь, где ключ = имя столбца, значение = значение столбца.
+    Функция:
+    - Определяет все столбцы таблицы через её модель (`table.__table__.columns`);
+    - Выполняет асинхронный запрос к базе данных для получения записи с указанным `row_id`;
+    - Возвращает словарь с ключами = именам столбцов и значениями = содержимому ячеек;
+    - Логирует ошибки и возвращает пустой словарь при исключениях или если запись не найдена.
+
+    Args:
+        row_id (int): Идентификатор записи в таблице.
+        table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
+
+    Returns:
+        dict ([str, Any]): Словарь с полной информацией о записи.
+        Пустой словарь, если запись не найдена или произошла ошибка.
     """
     try:
         stmt = select(
@@ -120,13 +170,22 @@ async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: A
 
 async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool | str:
     """
-    Обновляет информацию о записи в таблице по ее id, 
+    Обновляет запись в таблице по её ID с переданными данными.
 
-    :param row_id: Идентификатор записи id
-    :param table: Ссылка на модель, представляющую таблицу
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: bool | str
-    :return: True если обновление успешно. Иначе возвращает текст ошибки
+    Функция:
+    - Формирует асинхронный SQL-запрос на обновление значений столбцов;
+    - Выполняет обновление записи с указанным `row_id`;
+    - Коммитит изменения в базу данных;
+    - Логирует ошибки и возвращает текст ошибки при неудаче.
+
+    Args:
+        row_id (int): Идентификатор обновляемой записи.
+        table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
+        data (dict ([str, Any])): Словарь с данными для обновления. Ключ = имя столбца, значение = новое значение.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+
+    Returns:
+        bool | str: True, если обновление прошло успешно; иначе строка с текстом ошибки.
     """
     try:
         stmt = update(table).values(**data).where(table.id == row_id)
@@ -140,13 +199,21 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
 
 async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> int | str:
     """
-    Создает запись в таблице table по введенным data 
+    Создает новую запись в указанной таблице с переданными данными.
 
-    :param table: Ссылка на модель, представляющую таблицу
-    :param data: данные для новой записи в формате ключ - столбец таблицы.
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: int | str
-    :return: id созданной записи. Иначе возвращает текст ошибки
+    Функция:
+    - Формирует объект таблицы с переданными значениями столбцов;
+    - Добавляет объект в сессию и коммитит изменения в базу данных;
+    - Обновляет объект, чтобы получить его ID после вставки;
+    - Логирует ошибки и возвращает текст ошибки при неудаче.
+
+    Args:
+        table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
+        data (dict ([str, Any])): Словарь с данными для новой записи. Ключ = имя столбца, значение = значение.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+
+    Returns:
+        int | str: ID созданной записи, если вставка успешна; иначе строка с текстом ошибки.
     """
     try:
         new_row = table(
@@ -163,13 +230,20 @@ async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSessi
 
 async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bool | str:
     """
-    Создает запись в таблице table по введенным data 
+    Удаляет запись из указанной таблицы по её ID.
 
-    :param table: Ссылка на модель, представляющую таблицу
-    :param data: данные для новой записи в формате ключ - столбец таблицы.
-    :param session: Асинхронная сессия SQLAlchemy
-    :rtype: bool | str
-    :return: True при успешном удалении. Иначе возвращает текст ошибки
+    Функция:
+    - Формирует запрос на удаление записи с заданным row_id;
+    - Выполняет запрос и коммитит изменения в базу данных;
+    - Логирует ошибки и возвращает текст ошибки при неудаче.
+
+    Args:
+        row_id (int): ID записи, которую нужно удалить.
+        table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
+
+    Returns:
+        bool | str: True при успешном удалении; иначе строка с текстом ошибки.
     """
     try:
         stmt = delete(table).where(table.id == row_id)
