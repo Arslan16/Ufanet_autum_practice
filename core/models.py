@@ -1,6 +1,10 @@
-from sqlalchemy import BigInteger, String, ForeignKey
+import enum
+from datetime import datetime
+from sqlalchemy import BigInteger, String, ForeignKey, JSON, Enum, DateTime
 from sqlalchemy.orm import mapped_column, DeclarativeBase, relationship, Mapped
 from sqlalchemy.ext.asyncio import AsyncAttrs
+
+from .types import OutBoxStatuses
 
 
 class BaseTable(DeclarativeBase, AsyncAttrs):
@@ -47,6 +51,16 @@ class CardsTable(BaseTable):
 
     category: Mapped["CategoriesTable"] = relationship(back_populates="cards")
     company: Mapped["CompaniesTable"] = relationship(back_populates="cards")
+
+
+class OutboxTable(BaseTable):
+    __tablename__ = "outbox"
+    
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    queue: Mapped[str] = mapped_column(String)
+    status: Mapped[enum.Enum] = mapped_column(Enum(OutBoxStatuses))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
 
 tables: dict[str, BaseTable] = {

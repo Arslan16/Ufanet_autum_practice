@@ -41,3 +41,16 @@ HOST: str = dotenv_values.get("HOST", "localhost")
 
 PORT: int = int(dotenv_values.get("PORT", 8000))
 "Порт на котором будет запускаться FastAPI, по умолчанию 8000"
+
+RMQ_HOST: str = dotenv_values.get("RMQ_HOST", "127.0.0.1")
+"Хост на котором запущен RabbitMQ"
+
+RMQ_PORT: int = int(dotenv_values.get("RMQ_PORT"))
+"Порт на котором запущен RabbitMQ"
+
+RMQ_LOGIN: str = dotenv_values.get("RMQ_LOGIN")
+"Логин пользователя RabbitMQ"
+
+RMQ_PASSWORD: str = dotenv_values.get("RMQ_PASSWORD")
+"Пароль пользователя RabbitMQ"
+

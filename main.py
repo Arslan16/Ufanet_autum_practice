@@ -40,7 +40,7 @@ app.include_router(admin_rt)
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     if HOST == "localhost":
         uvicorn.run(app, host=HOST, port=int(PORT))
     else:

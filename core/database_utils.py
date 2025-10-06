@@ -1,12 +1,34 @@
-from sqlalchemy import delete, select, update
+from sqlalchemy import delete, select, update, insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select, Delete, Insert
+
 from loguru import logger
 from typing import Any
 
-from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable
+from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
+from .types import OutBoxStatuses
 
 
-async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
+async def insert_into_outbox(
+    payload: dict,
+    queue: str,
+    session: AsyncSession,
+    status: OutBoxStatuses = OutBoxStatuses.PENDING
+):
+    """
+    Добавляет запись в outbox с данными payload. Выполнен без try except для атомарности
+    
+    Args:
+        payload (dict): передаваемые данные между сервисами
+        queue (str): Имя очереди в которое будет отправлено сообщение
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
+        status (OutboxStatuses): статус сообщения, по умолчанияю `PENDING`
+    """
+    stmt: Insert = insert(OutboxTable).values(payload=payload, queue=queue, status=status)
+    await session.execute(stmt)
+
+
+async def get_all_categories(session: AsyncSession, queue_name: str) -> list[dict[str, Any]]:
     """
     Извлекает все категории из базы данных и возвращает их в виде списка словарей.
 
@@ -22,7 +44,8 @@ async def get_all_categories(session: AsyncSession) -> list[dict[str, Any]]:
         list(dict[str, Any]): Список словарей, где ключи — имена столбцов таблицы (`id`, `name`), а значения — данные категорий.
     """
     try:
-        stmt = select(CategoriesTable.id, CategoriesTable.name)
+        stmt: Select = select(CategoriesTable.id, CategoriesTable.name)
+        await insert_into_outbox({"select": ["id", "name"]}, queue_name, session)
         result = await session.execute(stmt)
         return [dict(res) for res in result.mappings()]
     except Exception as exc:
@@ -50,7 +73,7 @@ async def get_all_cards_in_category_with_short_description(category_id: int, ses
             - `company_name`, `company_short_description` компании.
     """
     try:
-        stmt = select(
+        stmt: Select = select(
                 CardsTable.id,
                 CardsTable.main_label,
                 CardsTable.description_under_label,
@@ -93,7 +116,7 @@ async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[
         Пустой словарь, если карточка не найдена или произошла ошибка.
     """
     try:
-        stmt = select(
+        stmt: Select = select(
                 CardsTable.main_label,
                 CardsTable.description_under_label,
                 CardsTable.obtain_method_description,
@@ -129,7 +152,7 @@ async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> li
         Пустой список, если таблица пуста или произошла ошибка.
     """
     try:
-        stmt = select(*table.__table__.columns)
+        stmt: Select = select(*table.__table__.columns)
         result = await session.execute(stmt)
         return [dict(res) for res in result.mappings().all()]
     except Exception as exc:
@@ -157,7 +180,7 @@ async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: A
         Пустой словарь, если запись не найдена или произошла ошибка.
     """
     try:
-        stmt = select(
+        stmt: Select = select(
                 *table.__table__.columns
             ).where(table.id == row_id
         )
@@ -188,7 +211,7 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
         bool | str: True, если обновление прошло успешно; иначе строка с текстом ошибки.
     """
     try:
-        stmt = update(table).values(**data).where(table.id == row_id)
+        stmt: Select = update(table).values(**data).where(table.id == row_id)
         await session.execute(stmt)
         await session.commit()
         return True
@@ -216,13 +239,10 @@ async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSessi
         int | str: ID созданной записи, если вставка успешна; иначе строка с текстом ошибки.
     """
     try:
-        new_row = table(
-            **data
-        )
-        session.add(new_row)
+        stmt: Insert = insert(table).values(**data).returning(table.id)
+        res: int = await session.scalar(stmt)
         await session.commit()
-        await session.refresh(new_row)
-        return new_row.id
+        return res
     except Exception as exc:
         logger.error(exc)
         return str(exc)
@@ -246,7 +266,7 @@ async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bo
         bool | str: True при успешном удалении; иначе строка с текстом ошибки.
     """
     try:
-        stmt = delete(table).where(table.id == row_id)
+        stmt: Delete = delete(table).where(table.id == row_id)
         await session.execute(stmt)
         await session.commit()
         return True

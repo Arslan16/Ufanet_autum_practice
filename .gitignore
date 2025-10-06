@@ -19,3 +19,4 @@ uv.lock
 # Test/Experimental Files
 web/templates/test
 web/handlers/test_handlers.py
+tst_send.py
