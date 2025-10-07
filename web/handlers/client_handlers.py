@@ -7,6 +7,7 @@ from config import TEMPLATES
 from core.database_utils import get_all_categories, get_all_cards_in_category_with_short_description, get_card_info_by_card_id
 from ..dependencies import async_session_generator
 from ..schemas import CardPydanticModel
+from ..settings import FASTAPI_DATABASE_QUERIES_QUEUE_NAME
 
 
 client_rt = APIRouter(prefix="/partnerprogram")
@@ -31,7 +32,7 @@ async def partnerprogram_get_handler(request: Request, session: AsyncSession = D
         TemplateResponse: HTML-страница с партнерской программой, включающая:
             - список категорий (`categories`) в формате list[dict].
     """
-    categories: list[dict[str, Any]] = await get_all_categories(session)
+    categories: list[dict[str, Any]] = await get_all_categories(session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
     "Список словарей отражающих запись в бд о категории по принципу ключ:столбец значение:значение"
     logger.debug(f"{categories=}")
     return TEMPLATES.TemplateResponse(request, "client/partnerprogram.html", {"categories": categories})
@@ -58,7 +59,7 @@ async def partnerprogram_cards_post_handler(request: Request, category_id: int |
             - список карточек (`cards`) в формате list[dict].
     """
     if isinstance(category_id, int):
-        cards: list[dict] = await get_all_cards_in_category_with_short_description(category_id, session)
+        cards: list[dict] = await get_all_cards_in_category_with_short_description(category_id, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         "Список словарей отражающих запись в бд о карточке по принципу ключ:столбец значение:значение"
     else:
         cards = list()
@@ -85,7 +86,7 @@ async def get_card_info_post_handler(request: Request, data: CardPydanticModel, 
     Returns:
         TemplateResponse: HTML-фрагмент модального окна с детальной информацией о карточке (`card`).
     """
-    card_info: dict[str, Any] = await get_card_info_by_card_id(data.card_id, session)
+    card_info: dict[str, Any] = await get_card_info_by_card_id(data.card_id, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
     "Словарь с информацией о конкретной карточке извлеченной по ее id в бд"
     logger.debug(f"{card_info=}")
     return TEMPLATES.TemplateResponse(request, "client/modal.html", {"card": card_info})

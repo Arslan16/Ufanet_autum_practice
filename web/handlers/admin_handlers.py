@@ -10,6 +10,7 @@ from core.database_utils import delete_row, get_all_rows_from_table, get_full_ro
 from web.utils import map_columns_to_table_types
 from ..dependencies import async_session_generator
 from ..schemas import DeleteRowModel, GetTableDataModel, GetTableRowModel, SaveRowModel, CreateRowGetModalModel, CreateRowModel
+from ..settings import FASTAPI_DATABASE_QUERIES_QUEUE_NAME
 
 
 admin_rt = APIRouter(prefix="/admin")
@@ -60,7 +61,7 @@ async def get_table_data(request: Request, data: GetTableDataModel, session: Asy
         table: BaseTable = tables.get(data.tablename)
         "Модель таблицы базы данных извлеченная по ее названию"
         
-        rows: list[dict[str, Any]] = await get_all_rows_from_table(table, session)
+        rows: list[dict[str, Any]] = await get_all_rows_from_table(table, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         "Список словарей отражающих запись в базе данных по принципу ключ:столбец значение:значение столбца"
         
         logger.debug(f"{rows=}")
@@ -122,7 +123,7 @@ async def save_row_post_handler(data: SaveRowModel, session: AsyncSession = Depe
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
         normalized_data: dict[str, Any] = map_columns_to_table_types(table, data.data)
-        update_res: bool | str = await update_row_by_id(data.id, table, normalized_data, session)
+        update_res: bool | str = await update_row_by_id(data.id, table, normalized_data, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         if update_res is True:
             return JSONResponse({"ok": True}, 200)
         else:
@@ -181,7 +182,7 @@ async def create_row_post_handler(data: CreateRowModel, session: AsyncSession = 
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
         normalized_data: dict[str, Any] = map_columns_to_table_types(table, data.data)
-        new_id: int | str = await create_row(table, normalized_data, session)
+        new_id: int | str = await create_row(table, normalized_data, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         if isinstance(new_id, int):
             return JSONResponse({"ok": True, "id": new_id}, 200)
         else:
@@ -210,7 +211,7 @@ async def create_row_post_handler(data: DeleteRowModel, session: AsyncSession = 
 
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
-        del_res = await delete_row(data.id, table, session)
+        del_res = await delete_row(data.id, table, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         if del_res is True:
             return JSONResponse({"ok": True}, 200)
         else:

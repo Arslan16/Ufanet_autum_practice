@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
@@ -20,13 +21,15 @@ PROJECT_NAME: str = CURRENT_DIR.name
 
 ASYNC_ENGINE: AsyncEngine = create_async_engine(
     URL.create(
-        host="localhost",
+        host=dotenv_values.get("DATABASE_HOST", "localhost"),
         drivername="postgresql+asyncpg",
         username=dotenv_values.get("DATABASE_USERNAME", "postgres"),
         password=dotenv_values.get("DATABASE_PASSWORD", "postgres"),
         database=dotenv_values.get("DATABASE_NAME"),
         port=int(dotenv_values.get("DATABASE_PORT", 5432))
-    )
+    ),
+    pool_pre_ping=True,
+    json_serializer=lambda obj: json.dumps(obj, ensure_ascii=False)
 )
 "Асинхронный движок для соединения с базой данных"
 

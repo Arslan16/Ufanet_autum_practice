@@ -13,7 +13,10 @@
 
 ## Пример .env
 ```
-# Имя пользователя
+# Хост базы данных
+DATABASE_HOST = "localhost"
+
+# Имя пользователя базы данных
 DATABASE_USERNAME = "postgres"
 
 # Пароль от базы данных
@@ -30,4 +33,21 @@ HOST = "localhost"
 
 # Порт на котором будет запущен FastAPI
 PORT = 8000
+
+# RabbitMQ HOST
+RMQ_HOST = "localhost"
+
+# RabbitMQ PORT
+RMQ_PORT = 5672
+
+# RabbitMQ login
+RMQ_LOGIN = "root"
+
+# RabbitMQ login's password
+RMQ_PASSWORD = "1234"
+```
+
+### Запуск RabbitMQ в контейнере
+```docker
+docker run --hostname localhost --name rabbitmq -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=guest -e RABBITMQ_DEFAULT_PASS=guest rabbitmq:4-management
 ```

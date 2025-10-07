@@ -1,6 +1,7 @@
+from datetime import datetime
 from sqlalchemy import delete, select, update, insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select, Delete, Insert
+from sqlalchemy.sql import Select, Delete, Insert, Update
 
 from loguru import logger
 from typing import Any
@@ -13,10 +14,11 @@ async def insert_into_outbox(
     payload: dict,
     queue: str,
     session: AsyncSession,
-    status: OutBoxStatuses = OutBoxStatuses.PENDING
+    status: OutBoxStatuses = OutBoxStatuses.PENDING,
+    commit: bool = True
 ):
     """
-    Добавляет запись в outbox с данными payload. Выполнен без try except для атомарности
+    Добавляет запись в outbox с данными payload
     
     Args:
         payload (dict): передаваемые данные между сервисами
@@ -24,11 +26,21 @@ async def insert_into_outbox(
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
         status (OutboxStatuses): статус сообщения, по умолчанияю `PENDING`
     """
-    stmt: Insert = insert(OutboxTable).values(payload=payload, queue=queue, status=status)
-    await session.execute(stmt)
+    try:
+        payload["executed_at"] = datetime.now().isoformat()
+        stmt: Insert = insert(OutboxTable).values(payload=payload, queue=queue, status=status)
+        await session.execute(stmt)
+        if commit:
+            await session.commit()
+        logger.debug("Запись в outbox успешна!")
+    except Exception as exc:
+        logger.error(exc)
 
 
-async def get_all_categories(session: AsyncSession, queue_name: str) -> list[dict[str, Any]]:
+async def get_all_categories(
+    session: AsyncSession, 
+    queue_name: str
+) -> list[dict[str, Any]]:
     """
     Извлекает все категории из базы данных и возвращает их в виде списка словарей.
 
@@ -45,15 +57,27 @@ async def get_all_categories(session: AsyncSession, queue_name: str) -> list[dic
     """
     try:
         stmt: Select = select(CategoriesTable.id, CategoriesTable.name)
-        await insert_into_outbox({"select": ["id", "name"]}, queue_name, session)
         result = await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "select",
+                "entity": "categories",
+                "fields": ["id", "name"]
+            }, 
+            queue=queue_name, 
+            session=session
+        )
         return [dict(res) for res in result.mappings()]
     except Exception as exc:
         logger.error(exc)
         return []
 
 
-async def get_all_cards_in_category_with_short_description(category_id: int, session: AsyncSession) -> list[dict[str, Any]]:
+async def get_all_cards_in_category_with_short_description(
+    category_id: int, 
+    session: AsyncSession,
+    queue_name: str
+) -> list[dict[str, Any]]:
     """
     Извлекает карточки, относящиеся к указанной категории, с данными для отображения в списке.
 
@@ -83,13 +107,32 @@ async def get_all_cards_in_category_with_short_description(category_id: int, ses
             ).join(CompaniesTable, CompaniesTable.id == CardsTable.company_id
         )
         result = await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "select",
+                "entity": "cards",
+                "filters": [
+                    {"column": "category_id", "operator": "=", "value": category_id}
+                ],
+                "fields": ["id", "main_label", "description_under_label"],
+                "joined_entities": {
+                    "companies": ["name", "short_description"]
+                }
+            },
+            queue=queue_name,
+            session=session
+        )
         return [dict(res) for res in result.mappings()]
     except Exception as exc:
         logger.error(exc)
         return []
 
 
-async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[str, Any]:
+async def get_card_info_by_card_id(
+    card_id: int, 
+    session: AsyncSession,
+    queue_name: str
+) -> dict[str, Any]:
     """
     Извлекает полную информацию о карточке по её идентификатору.
 
@@ -128,13 +171,33 @@ async def get_card_info_by_card_id(card_id: int, session: AsyncSession) -> dict[
             ).where(CardsTable.id == card_id
         )
         result = await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "select",
+                "entity": "cards",
+                "filters": [
+                    {"column": "id", "operator": "=", "value": card_id}
+                ],
+                "fields": [
+                    "main_label", "description_under_label", "obtain_method_description",
+                    "validity_period", "about_partner", "promocode", "call_to_action_link", 
+                    "call_to_action_btn_label"
+                ]
+            },
+            queue=queue_name,
+            session=session
+        )
         return dict(result.mappings().first())
     except Exception as exc:
         logger.error(exc)
         return {}
 
 
-async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> list[dict[str, Any]]:
+async def get_all_rows_from_table(
+    table: BaseTable, 
+    session: AsyncSession,
+    queue_name: str
+) -> list[dict[str, Any]]:
     """
     Извлекает все строки из указанной таблицы базы данных.
 
@@ -154,13 +217,27 @@ async def get_all_rows_from_table(table: BaseTable, session: AsyncSession) -> li
     try:
         stmt: Select = select(*table.__table__.columns)
         result = await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "select",
+                "entity": table.__tablename__,
+                "fields": [column.name for column in table.__table__.columns]
+            },
+            queue=queue_name,
+            session=session
+        )
         return [dict(res) for res in result.mappings().all()]
     except Exception as exc:
         logger.error(exc)
         return []
 
 
-async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: AsyncSession) -> dict[str, Any]:
+async def get_full_row_for_admin_by_id(
+    row_id: int, 
+    table: BaseTable, 
+    session: AsyncSession,
+    queue_name: str
+) -> dict[str, str | int]:
     """
     Извлекает полную информацию о конкретной записи из таблицы по её ID для редактирования в админ-панели.
 
@@ -176,7 +253,7 @@ async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: A
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
 
     Returns:
-        dict ([str, Any]): Словарь с полной информацией о записи.
+        dict ([str, str | int]): Словарь с полной информацией о записи.
         Пустой словарь, если запись не найдена или произошла ошибка.
     """
     try:
@@ -185,13 +262,31 @@ async def get_full_row_for_admin_by_id(row_id: int, table: BaseTable, session: A
             ).where(table.id == row_id
         )
         result = await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "select",
+                "entity": table.__tablename__,
+                "fields": [column.name for column in table.__table__.columns],
+                "filters": [
+                    {"column": "id", "operator": "=", "value": row_id}
+                ]
+            },
+            queue=queue_name,
+            session=session
+        )
         return dict(result.mappings().first())
     except Exception as exc:
         logger.error(exc)
         return {}
 
 
-async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], session: AsyncSession) -> bool | str:
+async def update_row_by_id(
+    row_id: int, 
+    table: BaseTable, 
+    data: dict[str, str | int], 
+    session: AsyncSession,
+    queue_name: str
+) -> bool | str:
     """
     Обновляет запись в таблице по её ID с переданными данными.
 
@@ -204,15 +299,28 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
     Args:
         row_id (int): Идентификатор обновляемой записи.
         table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
-        data (dict ([str, Any])): Словарь с данными для обновления. Ключ = имя столбца, значение = новое значение.
+        data (dict ([str, str | int])): Словарь с данными для обновления. Ключ = имя столбца, значение = новое значение.
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
 
     Returns:
         bool | str: True, если обновление прошло успешно; иначе строка с текстом ошибки.
     """
     try:
-        stmt: Select = update(table).values(**data).where(table.id == row_id)
+        stmt: Update = update(table).values(**data).where(table.id == row_id)
         await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "update",
+                "entity": table.__tablename__,
+                "fields": dict(**data),
+                "filters": [
+                    {"column": "id", "operator": "=", "value": row_id}
+                ]
+            },
+            queue=queue_name,
+            session=session,
+            commit=False
+        )
         await session.commit()
         return True
     except Exception as exc:
@@ -220,7 +328,12 @@ async def update_row_by_id(row_id: int, table: BaseTable, data: dict[str, Any], 
         return str(exc)
 
 
-async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSession) -> int | str:
+async def create_row(
+    table: BaseTable, 
+    data: dict[str, Any], 
+    session: AsyncSession,
+    queue_name: str
+) -> int | str:
     """
     Создает новую запись в указанной таблице с переданными данными.
 
@@ -241,6 +354,16 @@ async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSessi
     try:
         stmt: Insert = insert(table).values(**data).returning(table.id)
         res: int = await session.scalar(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "insert",
+                "entity": table.__tablename__,
+                "fields": dict(**data).update(id=res)
+            },
+            queue=queue_name,
+            session=session,
+            commit=False
+        )
         await session.commit()
         return res
     except Exception as exc:
@@ -248,7 +371,12 @@ async def create_row(table: BaseTable, data: dict[str, Any], session: AsyncSessi
         return str(exc)
 
 
-async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bool | str:
+async def delete_row(
+    row_id: int, 
+    table: BaseTable, 
+    session: AsyncSession,
+    queue_name: str
+) -> bool | str:
     """
     Удаляет запись из указанной таблицы по её ID.
 
@@ -268,6 +396,18 @@ async def delete_row(row_id: int, table: BaseTable, session: AsyncSession) -> bo
     try:
         stmt: Delete = delete(table).where(table.id == row_id)
         await session.execute(stmt)
+        await insert_into_outbox(
+            payload={
+                "action": "delete",
+                "entity": table.__tablename__,
+                "filters": [
+                    {"column": "id", "operator": "=", "value": row_id}
+                ]
+            },
+            queue=queue_name,
+            session=session,
+            commit=False
+        )
         await session.commit()
         return True
     except Exception as exc:
