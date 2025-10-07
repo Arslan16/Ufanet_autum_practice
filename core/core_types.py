@@ -6,7 +6,6 @@ from enum import Enum
 class RabbitMQCredentials:
     """
     Параметры подключеня к RabbitMQ:
-    
     Args:
         host (str): Хост на котором запущено rmq (Например `127.0.0.1`)
         port (int): Порт на котором хостится rmq (Например `5672`)

@@ -45,7 +45,9 @@ async def index_get_handler(
         request (Request): Текущий HTTP-запрос (FastAPI).
 
     Returns:
-        TemplateResponse: HTML-страница админ-панели со списком таблиц базы данных (`tables`), где ключи — читаемые названия таблиц, а значения — их имена в базе данных.
+        TemplateResponse: HTML-страница админ-панели со списком таблиц базы данных (`tables`),
+                            где ключи — читаемые названия таблиц,
+                            а значения — их имена в базе данных.
     """
     return TEMPLATES.TemplateResponse(
         request,
@@ -95,7 +97,7 @@ async def get_table_data(
                 session=session,
                 queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME
         )
-        """Список словарей отражающих запись в базе данных по принципу 
+        """Список словарей отражающих запись в базе данных по принципу
         ключ:столбец значение:значение столбца"""
 
         logger.debug(f"{rows=}")
@@ -117,7 +119,8 @@ async def get_table_row_post_handler(
     session: AsyncSession = Depends(async_session_generator)
 ):
     """
-    Обрабатывает POST-запрос на получение данных конкретной строки таблицы и формирование модального окна для редактирования.
+    Обрабатывает POST-запрос на получение данных конкретной строки таблицы
+    и формирование модального окна для редактирования.
 
     Функция:
     - Определяет модель таблицы по её имени (`data.tablename`);
@@ -146,7 +149,7 @@ async def get_table_row_post_handler(
             session=session,
             queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME
         )
-        """Информация о конкретной карточке извлеченной по ее ид, 
+        """Информация о конкретной карточке извлеченной по ее ид,
         содержащая полуню информацию о ней для редактирования админом"""
 
         logger.debug(f"{row_info=}")
@@ -181,7 +184,7 @@ async def save_row_post_handler(
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с БД.
 
     Returns:
-        JSONResponse: 
+        JSONResponse:
             - `{"ok": True}` с кодом 200 при успешном обновлении;
             - `{"ok": False, "error": str}` с кодом 500 при ошибке обновления.
     """

@@ -18,7 +18,7 @@ def map_columns_to_table_types(table: BaseTable, data: dict[str, str]) -> dict[s
 
     Args:
         table (BaseTable): Модель SQLAlchemy, представляющая таблицу базы данных.
-        data (dict ([str, str])): Словарь с данными, где ключ = имя столбца (или его русское отображение), значение = строковое представление значения.
+        data (dict ([str, str])): ключ = имя столбца, значение = строковое представление значения.
 
     Returns:
         dict ([str, Any]): Словарь с данными, приведёнными к типам столбцов таблицы.

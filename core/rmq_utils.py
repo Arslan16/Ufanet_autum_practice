@@ -16,7 +16,6 @@ async def send_message_to_queue(
 ) -> bool:
     """
     Отправляет сообщение в RabbitMQ очередь
-    
     Returns:
         bool: True если сообщение отправлено успешно
     """

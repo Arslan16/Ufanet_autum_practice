@@ -1,10 +1,11 @@
 import json
 
-from core.types import RabbitMQCredentials
 from dotenv import dotenv_values as get_dotenv_values
 from dotenv import load_dotenv
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
+
+from core.core_types import RabbitMQCredentials
 
 # Загрузка переменных окружения .env
 load_dotenv()

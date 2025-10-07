@@ -19,7 +19,10 @@ client_rt = APIRouter(prefix="/partnerprogram")
 
 
 @client_rt.get("/")
-async def partnerprogram_get_handler(request: Request, session: AsyncSession = Depends(async_session_generator)):
+async def partnerprogram_get_handler(
+    request: Request,
+    session: AsyncSession = Depends(async_session_generator)
+):
     """
     Обрабатывает GET-запрос для отображения страницы с партнерской программой и списком категорий.
 
@@ -43,7 +46,11 @@ async def partnerprogram_get_handler(request: Request, session: AsyncSession = D
 
 
 @client_rt.get("/cards")
-async def partnerprogram_cards_post_handler(request: Request, category_id: int | None = Query(None), session: AsyncSession = Depends(async_session_generator)):
+async def partnerprogram_cards_post_handler(
+    request: Request,
+    category_id: int | None = Query(None),
+    session: AsyncSession = Depends(async_session_generator)
+):
     """
     Обрабатывает GET-запрос для отображения страницы с карточками в определённой категории.
 
@@ -63,7 +70,10 @@ async def partnerprogram_cards_post_handler(request: Request, category_id: int |
             - список карточек (`cards`) в формате list[dict].
     """
     if isinstance(category_id, int):
-        cards: list[dict] = await get_all_cards_in_category_with_short_description(category_id, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
+        cards: list[dict] = await get_all_cards_in_category_with_short_description(
+            category_id=category_id,
+            session=session,
+            queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         "Список словарей отражающих запись в бд о карточке по принципу ключ:столбец значение:значение"
     else:
         cards = list()
@@ -73,9 +83,14 @@ async def partnerprogram_cards_post_handler(request: Request, category_id: int |
 
 
 @client_rt.post("/cards/get_card_info")
-async def get_card_info_post_handler(request: Request, data: CardPydanticModel, session: AsyncSession = Depends(async_session_generator)):
+async def get_card_info_post_handler(
+    request: Request,
+    data: CardPydanticModel,
+    session: AsyncSession = Depends(async_session_generator)
+):
     """
-    Обрабатывает POST-запрос на получение детальной информации о карточке и формирует HTML для модального окна.
+    Обрабатывает POST-запрос на получение детальной информации
+    о карточке и формирует HTML для модального окна.
 
     Функция:
     - Извлекает данные о карточке из базы по `card_id`;
@@ -90,7 +105,11 @@ async def get_card_info_post_handler(request: Request, data: CardPydanticModel, 
     Returns:
         TemplateResponse: HTML-фрагмент модального окна с детальной информацией о карточке (`card`).
     """
-    card_info: dict[str, Any] = await get_card_info_by_card_id(data.card_id, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
+    card_info: dict[str, Any] = await get_card_info_by_card_id(
+        card_id=data.card_id,
+        session=session,
+        queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME
+    )
     "Словарь с информацией о конкретной карточке извлеченной по ее id в бд"
     logger.debug(f"{card_info=}")
     return TEMPLATES.TemplateResponse(request, "client/modal.html", {"card": card_info})

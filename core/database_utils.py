@@ -6,8 +6,8 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Delete, Insert, Select, Update
 
+from .core_types import OutBoxStatuses
 from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
-from .types import OutBoxStatuses
 
 
 async def insert_into_outbox(
@@ -19,7 +19,6 @@ async def insert_into_outbox(
 ):
     """
     Добавляет запись в outbox с данными payload
-    
     Args:
         payload (dict): передаваемые данные между сервисами
         queue (str): Имя очереди в которое будет отправлено сообщение
@@ -41,8 +40,7 @@ async def get_last_pending_messages_from_outbox(
     session: AsyncSession
 ) -> list[OutboxTable]:
     """
-    Извлекает из `outbox` первое добавленное сообщение(Самое раннее) из тех что ожидают отправки в брокер 
-    
+    Извлекает из `outbox` первое добавленное сообщение(Самое раннее) из тех что ожидают отправки в брокер
     Args:
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
 
@@ -66,8 +64,7 @@ async def set_status_of_outbox_row(
     session: AsyncSession
 ) -> bool:
     """
-    Присваивает записи из `outbox` новый статус 
-    
+    Присваивает записи из `outbox` новый статус
     Args:
         row_id (int): Идентификатор записи
         status (OutboxStatuses): Значение из перечисления `OutboxStatuses`
@@ -105,7 +102,7 @@ async def get_all_categories(
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных.
 
     Returns:
-        list(dict[str, Any]): Список словарей, где ключи — имена столбцов таблицы (`id`, `name`), а значения — данные категорий.
+        list(dict[str, Any]): Список словарей с ключами (`id`, `name`), значения — данные категорий.
     """
     try:
         stmt: Select = select(CategoriesTable.id, CategoriesTable.name)
@@ -207,7 +204,6 @@ async def get_card_info_by_card_id(
             - `promocode`
             - `call_to_action_link`
             - `call_to_action_btn_label`
-        
         Пустой словарь, если карточка не найдена или произошла ошибка.
     """
     try:
