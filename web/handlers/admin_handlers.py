@@ -92,7 +92,7 @@ async def get_table_row_post_handler(request: Request, data: GetTableRowModel, s
 
     if tables.get(data.tablename) is not None:
         table: BaseTable = tables.get(data.tablename)
-        row_info: dict[str, Any] = await get_full_row_for_admin_by_id(data.id, table, session)
+        row_info: dict[str, Any] = await get_full_row_for_admin_by_id(data.id, table, session, FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         "Информация о конкретной карточке извлеченной по ее ид, содержащая полуню информацию о ней для редактирования админом"
         logger.debug(f"{row_info=}")
         return TEMPLATES.TemplateResponse(request, "admin/modal_save.html", {"row_id": data.id, "row_info": row_info, "descriptions": russian_field_names, "columns": row_info.keys()})

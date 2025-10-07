@@ -51,3 +51,13 @@ RMQ_PASSWORD = "1234"
 ```docker
 docker run --hostname localhost --name rabbitmq -p 15672:15672 -p 5672:5672 -e RABBITMQ_DEFAULT_USER=guest -e RABBITMQ_DEFAULT_PASS=guest rabbitmq:4-management
 ```
+
+для тестов pytest
+pytest.coverage
+
+Facade Command Strategy - паттерны при рефакторинге/тестирование
+
+ruff mypy
+
+mypy --strict
+

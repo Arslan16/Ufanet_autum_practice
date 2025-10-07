@@ -406,11 +406,12 @@ async def create_row(
     try:
         stmt: Insert = insert(table).values(**data).returning(table.id)
         res: int = await session.scalar(stmt)
+        data["id"] = res
         await insert_into_outbox(
             payload={
                 "action": "insert",
                 "entity": table.__tablename__,
-                "fields": dict(**data).update(id=res)
+                "fields": dict(**data)
             },
             queue=queue_name,
             session=session,
