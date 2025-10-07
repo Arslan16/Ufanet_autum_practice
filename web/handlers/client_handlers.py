@@ -3,11 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
 from loguru import logger
 
-from config import TEMPLATES
 from core.database_utils import get_all_categories, get_all_cards_in_category_with_short_description, get_card_info_by_card_id
 from ..dependencies import async_session_generator
 from ..schemas import CardPydanticModel
-from ..settings import FASTAPI_DATABASE_QUERIES_QUEUE_NAME
+from ..config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, TEMPLATES
 
 
 client_rt = APIRouter(prefix="/partnerprogram")

@@ -31,7 +31,6 @@ class RabbitMQCredentials:
 
 class OutBoxStatuses(Enum):
     PENDING = "pending"        # Ожидает отправки
-    PROCESSING = "processing"  # В процессе отправки  
     SENT = "sent"              # Успешно отправлено
     FAILED = "failed"          # Ошибка отправки
     ARCHIVED = "archived"      # Удалено из активной таблицы

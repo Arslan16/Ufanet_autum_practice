@@ -37,6 +37,58 @@ async def insert_into_outbox(
         logger.error(exc)
 
 
+async def get_last_pending_messages_from_outbox(
+    session: AsyncSession
+) -> list[OutboxTable]:
+    """
+    Извлекает из `outbox` первое добавленное сообщение(Самое раннее) из тех что ожидают отправки в брокер 
+    
+    Args:
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
+
+    Returns:
+        (list[OutboxTable]): Список записей из outbox.
+    """
+    try:
+        stmt: Select = select(OutboxTable
+                       ).where(OutboxTable.status == OutBoxStatuses.PENDING
+                       ).order_by(OutboxTable.created_at)
+        result = await session.scalars(stmt)
+        return [res for res in result]
+    except Exception as exc:
+        logger.error(exc)
+        return []
+
+
+async def set_status_of_outbox_row(
+    row_id: int,
+    status: OutBoxStatuses,
+    session: AsyncSession
+) -> bool:
+    """
+    Присваивает записи из `outbox` новый статус 
+    
+    Args:
+        row_id (int): Идентификатор записи
+        status (OutboxStatuses): Значение из перечисления `OutboxStatuses`
+        session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
+
+    Returns:
+        bool: `True` если ошибок при обновлении не возникло, иначе `False`.
+    """
+    try:
+        stmt: Update = update(OutboxTable
+                       ).values(status=status
+                       ).where(OutboxTable.id == row_id
+        )
+        await session.execute(stmt)
+        await session.commit()
+        return True
+    except Exception as exc:
+        logger.error(exc)
+        return False
+
+
 async def get_all_categories(
     session: AsyncSession, 
     queue_name: str

@@ -1,5 +1,5 @@
 from typing import AsyncGenerator, Any
-from .settings import FASTAPI_ASYNC_SESSIONMAKER
+from .config import FASTAPI_ASYNC_SESSIONMAKER
 
 
 async def async_session_generator() -> AsyncGenerator[Any, Any]:

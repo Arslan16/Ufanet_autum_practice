@@ -4,13 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
 from loguru import logger
 
-from config import TEMPLATES
 from core.models import BaseTable, CardsTable, CompaniesTable, CategoriesTable, tables, russian_field_names
 from core.database_utils import delete_row, get_all_rows_from_table, get_full_row_for_admin_by_id, update_row_by_id, create_row
 from web.utils import map_columns_to_table_types
 from ..dependencies import async_session_generator
 from ..schemas import DeleteRowModel, GetTableDataModel, GetTableRowModel, SaveRowModel, CreateRowGetModalModel, CreateRowModel
-from ..settings import FASTAPI_DATABASE_QUERIES_QUEUE_NAME
+from ..config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, TEMPLATES
 
 
 admin_rt = APIRouter(prefix="/admin")

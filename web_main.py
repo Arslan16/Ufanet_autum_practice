@@ -1,3 +1,6 @@
+"""
+Запускает веб сервис с админ панелью и клиентской частью
+"""
 import uvicorn
 import logging
 import sys
@@ -9,7 +12,7 @@ from core.models import BaseTable
 from web.handlers.client_handlers import client_rt
 from web.handlers.admin_handlers import admin_rt
 #from web.handlers.test_handlers import test_rt
-from config import STATIC_FILES, HOST, PORT, PROJECT_NAME, ASYNC_ENGINE
+from web.config import STATIC_FILES, HOST, PORT, PROJECT_NAME, ASYNC_ENGINE
 
 
 @asynccontextmanager
