@@ -1,4 +1,5 @@
-from typing import AsyncGenerator, Any
+from typing import Any, AsyncGenerator
+
 from .config import FASTAPI_ASYNC_SESSIONMAKER
 
 

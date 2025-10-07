@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 @dataclass
 class RabbitMQCredentials:
     """
@@ -16,7 +17,7 @@ class RabbitMQCredentials:
     port: int
     login: str
     password: str
-    
+
     def to_connection_params(self) -> dict:
         return {
             "host": self.host,
@@ -24,7 +25,7 @@ class RabbitMQCredentials:
             "login": self.login,
             "password": self.password,
         }
-    
+
     def to_url(self) -> str:
         return f"amqp://{self.login}:{self.password}@{self.host}:{self.port}"
 

@@ -61,3 +61,6 @@ ruff mypy
 
 mypy --strict
 
+```
+uv tool run ruff
+```

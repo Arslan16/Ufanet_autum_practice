@@ -1,23 +1,23 @@
-"""
-Запускает веб сервис с админ панелью и клиентской частью
-"""
-import uvicorn
 import logging
 import sys
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+import uvicorn
+from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import close_all_sessions
 
 from core.models import BaseTable
-from web.handlers.client_handlers import client_rt
+from web.config import ASYNC_ENGINE, HOST, PORT, PROJECT_NAME, STATIC_FILES
 from web.handlers.admin_handlers import admin_rt
-#from web.handlers.test_handlers import test_rt
-from web.config import STATIC_FILES, HOST, PORT, PROJECT_NAME, ASYNC_ENGINE
+from web.handlers.client_handlers import client_rt
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    "Функция которая запускается при старте FastAPI. Создает таблицы в бд и закрывает соединение с ней когда приложение завершает работу"
+    """
+    Запускается при старте FastAPI.
+    Создает таблицы в бд и закрывает соединение с ней когда приложение завершает работу
+    """
     async with ASYNC_ENGINE.begin() as conn:
         await conn.run_sync(BaseTable.metadata.create_all)
 
@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 
 app: FastAPI = FastAPI(
-    root_path=f"/{PROJECT_NAME}", 
+    root_path=f"/{PROJECT_NAME}",
     lifespan=lifespan,
     docs_url=None,
     redoc_url=None,

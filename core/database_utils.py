@@ -1,10 +1,10 @@
 from datetime import datetime
-from sqlalchemy import delete, select, update, insert
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import Select, Delete, Insert, Update
+from typing import Any
 
 from loguru import logger
-from typing import Any
+from sqlalchemy import delete, insert, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Delete, Insert, Select, Update
 
 from .models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
 from .types import OutBoxStatuses
@@ -90,7 +90,7 @@ async def set_status_of_outbox_row(
 
 
 async def get_all_categories(
-    session: AsyncSession, 
+    session: AsyncSession,
     queue_name: str
 ) -> list[dict[str, Any]]:
     """
@@ -115,8 +115,8 @@ async def get_all_categories(
                 "action": "select",
                 "entity": "categories",
                 "fields": ["id", "name"]
-            }, 
-            queue=queue_name, 
+            },
+            queue=queue_name,
             session=session
         )
         return [dict(res) for res in result.mappings()]
@@ -126,7 +126,7 @@ async def get_all_categories(
 
 
 async def get_all_cards_in_category_with_short_description(
-    category_id: int, 
+    category_id: int,
     session: AsyncSession,
     queue_name: str
 ) -> list[dict[str, Any]]:
@@ -181,7 +181,7 @@ async def get_all_cards_in_category_with_short_description(
 
 
 async def get_card_info_by_card_id(
-    card_id: int, 
+    card_id: int,
     session: AsyncSession,
     queue_name: str
 ) -> dict[str, Any]:
@@ -232,7 +232,7 @@ async def get_card_info_by_card_id(
                 ],
                 "fields": [
                     "main_label", "description_under_label", "obtain_method_description",
-                    "validity_period", "about_partner", "promocode", "call_to_action_link", 
+                    "validity_period", "about_partner", "promocode", "call_to_action_link",
                     "call_to_action_btn_label"
                 ]
             },
@@ -246,7 +246,7 @@ async def get_card_info_by_card_id(
 
 
 async def get_all_rows_from_table(
-    table: BaseTable, 
+    table: BaseTable,
     session: AsyncSession,
     queue_name: str
 ) -> list[dict[str, Any]]:
@@ -285,8 +285,8 @@ async def get_all_rows_from_table(
 
 
 async def get_full_row_for_admin_by_id(
-    row_id: int, 
-    table: BaseTable, 
+    row_id: int,
+    table: BaseTable,
     session: AsyncSession,
     queue_name: str
 ) -> dict[str, str | int]:
@@ -333,9 +333,9 @@ async def get_full_row_for_admin_by_id(
 
 
 async def update_row_by_id(
-    row_id: int, 
-    table: BaseTable, 
-    data: dict[str, str | int], 
+    row_id: int,
+    table: BaseTable,
+    data: dict[str, str | int],
     session: AsyncSession,
     queue_name: str
 ) -> bool | str:
@@ -381,8 +381,8 @@ async def update_row_by_id(
 
 
 async def create_row(
-    table: BaseTable, 
-    data: dict[str, Any], 
+    table: BaseTable,
+    data: dict[str, Any],
     session: AsyncSession,
     queue_name: str
 ) -> int | str:
@@ -425,8 +425,8 @@ async def create_row(
 
 
 async def delete_row(
-    row_id: int, 
-    table: BaseTable, 
+    row_id: int,
+    table: BaseTable,
     session: AsyncSession,
     queue_name: str
 ) -> bool | str:

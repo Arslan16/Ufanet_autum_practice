@@ -1,13 +1,13 @@
-import json
 import asyncio
+import json
 
+from core.types import OutBoxStatuses
 from loguru import logger
 
 from core.database_utils import get_last_pending_messages_from_outbox, set_status_of_outbox_row
 from core.models import OutboxTable
 from core.rmq_utils import send_message_to_queue
-from core.types import OutBoxStatuses
-from outbox.config import OUTBOX_ASYNC_SESSIONMAKER, RABBIT_MQ_CREDINTAILS, FASTAPI_DATABASE_QUERIES_QUEUE_NAME
+from outbox.config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, OUTBOX_ASYNC_SESSIONMAKER, RABBIT_MQ_CREDINTAILS
 
 
 async def run_outbox_table_polling():
@@ -26,10 +26,10 @@ async def run_outbox_table_polling():
         while True:
             last_msgs: list[OutboxTable] = await get_last_pending_messages_from_outbox(session)
             "Сообщения со статусом `PENDING` в порядке возрастания по дате"
-            
+
             for message in last_msgs:
                 status = await send_message_to_queue(
-                    queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME, 
+                    queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
                     message=json.dumps(message.payload),
                     credintails=RABBIT_MQ_CREDINTAILS
                 )

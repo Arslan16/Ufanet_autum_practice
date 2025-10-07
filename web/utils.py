@@ -1,6 +1,7 @@
 from typing import Any
+
 from loguru import logger
-from sqlalchemy import String, BigInteger
+from sqlalchemy import BigInteger, String
 
 from core.models import BaseTable, reverse_russian_field_names
 
@@ -22,7 +23,7 @@ def map_columns_to_table_types(table: BaseTable, data: dict[str, str]) -> dict[s
     Returns:
         dict ([str, Any]): Словарь с данными, приведёнными к типам столбцов таблицы.
     """
-    try: 
+    try:
         clear_result: dict = dict()
         "Итоговый словарь с нужными типами данных и столбцами(ключами) и значениями"
         data = { reverse_russian_field_names.get(key, key) : data[key] for key in data.keys()}

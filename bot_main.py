@@ -1,11 +1,11 @@
 import asyncio
-import aio_pika
 import json
+
+import aio_pika
 from aiogram import Bot
 from loguru import logger
 
-from bot.config import BOT_TOKEN, RabbitMQCredentials, RABBIT_MQ_CREDINTAILS, FASTAPI_DATABASE_QUERIES_QUEUE_NAME
-
+from bot.config import BOT_TOKEN, FASTAPI_DATABASE_QUERIES_QUEUE_NAME, RABBIT_MQ_CREDINTAILS, RabbitMQCredentials
 
 bot = Bot(BOT_TOKEN)
 "Главный объект aiogram - экземпляр телеграм бота с его токеном"
@@ -15,10 +15,10 @@ admins: list[int] = [959434557]
 
 
 async def run_listening_queue(
-    queue_name: str, 
+    queue_name: str,
     credintails: RabbitMQCredentials,
     durable: bool = True  # Дополнительные параметры
-):  
+):
     connection = None
     try:
         async with await aio_pika.connect_robust(
@@ -28,7 +28,7 @@ async def run_listening_queue(
                 password=credintails.password,
                 loop=asyncio.get_event_loop()
             ) as connection:
-            
+
             async with await connection.channel() as channel:
                 # Объявление очереди (опционально, но рекомендуется)
                 queue = await channel.declare_queue(queue_name, durable=durable)

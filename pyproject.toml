@@ -15,3 +15,7 @@ dependencies = [
     "sqlalchemy>=2.0.43",
     "uvicorn>=0.37.0",
 ]
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "W", "I"]  # включаем нужные правила
+ignore = []

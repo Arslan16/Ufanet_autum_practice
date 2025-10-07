@@ -1,13 +1,18 @@
-from fastapi import APIRouter, Request, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
-from loguru import logger
 
-from core.database_utils import get_all_categories, get_all_cards_in_category_with_short_description, get_card_info_by_card_id
+from fastapi import APIRouter, Depends, Query, Request
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.database_utils import (
+    get_all_cards_in_category_with_short_description,
+    get_all_categories,
+    get_card_info_by_card_id,
+)
+
+from ..config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, TEMPLATES
 from ..dependencies import async_session_generator
 from ..schemas import CardPydanticModel
-from ..config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, TEMPLATES
-
 
 client_rt = APIRouter(prefix="/partnerprogram")
 "Роутер отвечающий за обработку запросов для обычного посетителя сайта(Клиента)"

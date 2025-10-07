@@ -1,8 +1,9 @@
 import enum
 from datetime import datetime
-from sqlalchemy import BigInteger, String, ForeignKey, JSON, Enum, DateTime
-from sqlalchemy.orm import mapped_column, DeclarativeBase, relationship, Mapped
+
+from sqlalchemy import JSON, BigInteger, DateTime, Enum, ForeignKey, String
 from sqlalchemy.ext.asyncio import AsyncAttrs
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from .types import OutBoxStatuses
 
@@ -19,7 +20,7 @@ class CompaniesTable(BaseTable):
     id: Mapped[int] = mapped_column(BigInteger, autoincrement=True, primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False) # Имя раздела
     short_description: Mapped[str] = mapped_column(String, unique=True, nullable=False) # Имя раздела
-    
+
     cards: Mapped["CardsTable"] = relationship(back_populates="company")
 
 
@@ -55,7 +56,7 @@ class CardsTable(BaseTable):
 
 class OutboxTable(BaseTable):
     __tablename__ = "outbox"
-    
+
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     payload: Mapped[dict] = mapped_column(JSON)
     queue: Mapped[str] = mapped_column(String)
