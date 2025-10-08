@@ -63,8 +63,9 @@ async function modalCreateOnClick() {
         const tbody = document.getElementById("tablePlaceHolder").querySelector("tbody");
         const thead = document.getElementById("tablePlaceHolder").querySelector("thead");
         var newRow = tbody.insertRow();
+        newRow.setAttribute('data-row-id', response_json['id'])
         var btn_cell = newRow.insertCell(0);
-        btn_cell.innerHTML = `<button class="btn trigger" data-card-id="${response_json['id']}">Подробнее</button>`;
+        btn_cell.innerHTML = `<button class="btn trigger" onclick="openModalToSaveRow('${response_json['id']}', '${modalWindow.tableName}')">Подробнее</button>`;
         Array.from(thead.querySelectorAll("th")).slice(1).forEach( th => {
             var newCell = newRow.insertCell();
             newCell.textContent = dataToSave[th.textContent] ?? ""
