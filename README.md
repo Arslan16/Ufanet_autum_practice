@@ -64,3 +64,5 @@ mypy --strict
 ```
 uv tool run ruff
 ```
+
+Faker

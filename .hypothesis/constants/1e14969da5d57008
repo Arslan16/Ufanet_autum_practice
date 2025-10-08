@@ -1,0 +1,4 @@
+# file: /media/arslan/projects/Ufanet_autum_practice/core/database_utils.py
+# hypothesis_version: 6.140.3
+
+['=', 'about_partner', 'action', 'call_to_action_link', 'cards', 'categories', 'category_id', 'column', 'companies', 'company_name', 'delete', 'entity', 'executed_at', 'fields', 'filters', 'id', 'insert', 'joined_entities', 'main_label', 'name', 'operator', 'promocode', 'select', 'short_description', 'update', 'validity_period', 'value']

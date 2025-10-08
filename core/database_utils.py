@@ -40,7 +40,7 @@ async def get_last_pending_messages_from_outbox(
     session: AsyncSession
 ) -> list[OutboxTable]:
     """
-    Извлекает из `outbox` первое добавленное сообщение(Самое раннее) из тех что ожидают отправки в брокер
+    Извлекает из `outbox` все сообщения из тех что ожидают отправки в брокер от саммого позднего до раннего
     Args:
         session (AsyncSession): Асинхронная сессия SQLAlchemy для работы с базой данных
 
