@@ -16,6 +16,8 @@ wheels/
 .python-version
 uv.lock
 .ruff_cache
+.pytest_cache
+.hypothesis
 
 # Test/Experimental Files
 web/templates/test
