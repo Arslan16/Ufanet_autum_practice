@@ -1,4 +1,0 @@
-# file: /media/arslan/projects/Ufanet_autum_practice/core/models.py
-# hypothesis_version: 6.140.3
-
-['CardsTable', 'CategoriesTable', 'CompaniesTable', 'cards', 'categories', 'categories.id', 'category', 'companies', 'companies.id', 'company', 'id', 'name', 'outbox', 'Заголовок карточки', 'ИД', 'ИД Категории', 'ИД Компании', 'Метод получения', 'Наименование', 'О партнере', 'Описание', 'Промокод', 'Срок действия']

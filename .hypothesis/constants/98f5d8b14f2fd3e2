@@ -1,4 +1,0 @@
-# file: /media/arslan/projects/Ufanet_autum_practice/core/core_types.py
-# hypothesis_version: 6.140.3
-
-['archived', 'failed', 'host', 'login', 'password', 'pending', 'port', 'sent']
