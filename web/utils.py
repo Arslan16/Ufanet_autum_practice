@@ -24,9 +24,9 @@ def map_columns_to_table_types(table: BaseTable, data: dict[str, str]) -> dict[s
         dict ([str, Any]): Словарь с данными, приведёнными к типам столбцов таблицы.
     """
     try:
-        clear_result: dict = dict()
+        clear_result: dict = dict
         "Итоговый словарь с нужными типами данных и столбцами(ключами) и значениями"
-        data = { reverse_russian_field_names.get(key, key) : data[key] for key in data.keys()}
+        data = { reverse_russian_field_names.get(key, key) : data[key] for key in data}
         "Словарь отражающий запись в таблице, но уже с оригинальным названием столбца на английском"
 
         for column in table.__table__.columns:

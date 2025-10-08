@@ -76,7 +76,7 @@ async def partnerprogram_cards_post_handler(
             queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME)
         "Список словарей отражающих запись в бд о карточке по принципу ключ:столбец значение:значение"
     else:
-        cards = list()
+        cards = list
         "Пустой список если category_id не число"
     logger.debug(f"{cards=}")
     return TEMPLATES.TemplateResponse(request, "client/cards.html", {"cards": cards})

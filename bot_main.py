@@ -27,19 +27,17 @@ async def run_listening_queue(
                 login=credintails.login,
                 password=credintails.password,
                 loop=asyncio.get_event_loop()
-            ) as connection:
+            ) as connection, await connection.channel() as channel:
+            # Объявление очереди (опционально, но рекомендуется)
+            queue = await channel.declare_queue(queue_name, durable=durable)
 
-            async with await connection.channel() as channel:
-                # Объявление очереди (опционально, но рекомендуется)
-                queue = await channel.declare_queue(queue_name, durable=durable)
-
-                async with queue.iterator() as queue_iter:
-                    # Cancel consuming after __aexit__
-                    async for message in queue_iter:
-                        async with message.process():
-                            body = json.loads(message.body)
-                            for admin in admins:
-                                await bot.send_message(admin, f"```json\n{body}\n```", parse_mode="MarkdownV2")
+            async with queue.iterator() as queue_iter:
+                # Cancel consuming after __aexit__
+                async for message in queue_iter:
+                    async with message.process():
+                        body = json.loads(message.body)
+                        for admin in admins:
+                            await bot.send_message(admin, f"```json\n{body}\n```", parse_mode="MarkdownV2")
     except Exception as e:
         logger.error(e)
         if connection:

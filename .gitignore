@@ -15,6 +15,7 @@ wheels/
 # Uv files
 .python-version
 uv.lock
+.ruff_cache
 
 # Test/Experimental Files
 web/templates/test

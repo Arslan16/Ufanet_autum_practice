@@ -52,7 +52,7 @@ async def get_last_pending_messages_from_outbox(
                        ).where(OutboxTable.status == OutBoxStatuses.PENDING
                        ).order_by(OutboxTable.created_at)
         result = await session.scalars(stmt)
-        return [res for res in result]
+        return list(result)
     except Exception as exc:
         logger.error(exc)
         return []

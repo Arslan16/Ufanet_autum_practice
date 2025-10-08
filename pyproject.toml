@@ -17,5 +17,18 @@ dependencies = [
 ]
 [tool.ruff]
 line-length = 120
-select = ["E", "F", "W", "I"]  # включаем нужные правила
-ignore = []
+# Эквивалент --strict
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "W",  # warnings
+  "I",  # isort
+  "N",  # pep8-naming
+  "UP", # pyupgrade
+  "B",  # flake8-bugbear
+  "A",  # flake8-builtins
+  "C4", # flake8-comprehensions
+  "SIM",# flake8-simplify
+  "PL", # pylint-like checks
+]
+ignore = ["B008"]
