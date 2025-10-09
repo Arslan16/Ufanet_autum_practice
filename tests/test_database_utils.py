@@ -1,7 +1,6 @@
 import pytest
-import string
 from unittest.mock import AsyncMock, patch
-from hypothesis import given, strategies as st, HealthCheck, settings
+from hypothesis import given, settings
 from sqlalchemy import select, delete, desc, insert
 from sqlalchemy.ext.asyncio import (
     AsyncSession, 
@@ -18,6 +17,7 @@ from core.models import (
     OutboxTable,
     CardsTable
 )
+
 from core.database_utils import (
     create_row,
     get_all_cards_in_category_with_short_description,
@@ -25,6 +25,14 @@ from core.database_utils import (
     get_all_categories,
     get_last_pending_messages_from_outbox,
     set_status_of_outbox_row
+)
+
+from factories import (
+    my_hypothesis_settings,
+    card_factory,
+    category_factory,
+    company_factory,
+    queue_factory
 )
 
 
@@ -46,16 +54,33 @@ async def session():
     await engine.dispose()
 
 
+@pytest.fixture(autouse=True)
+async def clear_db(session):
+    for table in reversed(BaseTable.metadata.sorted_tables):
+        await session.execute(table.delete())
+    await session.commit()
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_session(session: AsyncSession):
+    yield
+    await session.rollback()
+
+
 @pytest.mark.asyncio
-async def test_insert_into_outbox(session: AsyncSession):
-    payload = {
-        "test": "my_data"
-    }
-    queue = "test-queue"
-    
+@given(
+    queue_name=queue_factory,
+    payload=card_factory
+)
+@settings(**my_hypothesis_settings)
+async def test_insert_into_outbox(
+    session: AsyncSession,
+    queue_name: str,
+    payload: dict
+):   
     await insert_into_outbox(
         payload=payload,
-        queue=queue,
+        queue=queue_name,
         session=session,
         commit=True
     )
@@ -63,19 +88,23 @@ async def test_insert_into_outbox(session: AsyncSession):
     result = await session.scalar(select(OutboxTable).order_by(desc(OutboxTable.id)))
     assert isinstance(result, OutboxTable)
     assert result.payload == payload
-    assert result.queue == queue
+    assert result.queue == queue_name
 
 
 @pytest.mark.asyncio
-async def test_get_last_pending_messages_from_outbox(session: AsyncSession):
-    payload = {
-        "test": "my_test_get_last_pending_messages_from_outboxdata"
-    }
-    queue = "test-queue"
-
+@given(
+    queue_name=queue_factory, 
+    payload=card_factory
+)
+@settings(**my_hypothesis_settings)
+async def test_get_last_pending_messages_from_outbox(
+    session: AsyncSession,
+    queue_name: str,
+    payload: dict
+):
     await insert_into_outbox(
         payload=payload,
-        queue=queue,
+        queue=queue_name,
         session=session,
         commit=True
     )
@@ -84,7 +113,7 @@ async def test_get_last_pending_messages_from_outbox(session: AsyncSession):
     assert isinstance(result, list)
     assert len(result) >= 1
     assert result[-1].payload == payload
-    assert result[-1].queue == queue
+    assert result[-1].queue == queue_name
     
     await set_status_of_outbox_row(result[-1].id, OutBoxStatuses.FAILED, session)
     await session.refresh(result[-1])
@@ -92,21 +121,22 @@ async def test_get_last_pending_messages_from_outbox(session: AsyncSession):
     
     
 @pytest.mark.asyncio
-@given(queue_name=st.text(), category=st.text(alphabet=string.ascii_letters, min_size=10))
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
+@given(
+    queue_name=queue_factory, 
+    category=category_factory()
+)
+@settings(**my_hypothesis_settings)
 async def test_get_all_categories(
     session: AsyncSession, 
     queue_name: str,
-    category: str
+    category: dict
 ):
-    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock) as mock_outbox:
+    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
         # Подготовка тестовых данных
         await session.execute(delete(CategoriesTable))
         await create_row(
-            CategoriesTable, 
-            {
-                "name": category
-            },
+            CategoriesTable,
+            category,
             session, 
             queue_name
         )
@@ -115,76 +145,66 @@ async def test_get_all_categories(
         assert isinstance(result, list)
         assert len(result) >= 1
         assert {"id", "name"} <= set(result[-1].keys())
-        assert result[-1]["name"] == category
+        assert result[-1]["name"] == category["name"]
 
 
 @pytest.mark.asyncio
-async def test_get_all_cards_in_category_with_short_description(session: AsyncSession):
-    await create_row(
-        CategoriesTable, 
-        {
-            "id": 1,
-            "name": "Интернет и ТВ"
-        },
-        session, 
-        "test_queue"
-    )
-    
-    await session.execute(
-        insert(CompaniesTable).values(
-            {
-                CompaniesTable.id.name: 1,
-                CompaniesTable.name.name: "Компания",
-                CompaniesTable.short_description.name: "Описание"
-            }
-        )
-    )
-    
-    test_card = {
-        CardsTable.id.name: 1,
-        CardsTable.category_id.name: 1,
-        CardsTable.company_id.name: 1,
-        CardsTable.main_label.name: "Лейбл",
-        CardsTable.description_under_label.name: "Описание",
-        CardsTable.obtain_method_description.name: "Метод получения"
-    }
-    await session.execute(insert(CardsTable).values(test_card))
-    await session.commit()
-    result = await get_all_cards_in_category_with_short_description(1, session, "test_queue")
-    
-    assert isinstance(result, list)
-    assert len(result) > 0
-    for key in test_card:
-        assert result[-1][key] == test_card[key]
+@given(
+    category=category_factory(),
+    company=company_factory(),
+    card=card_factory,
+    queue_name=queue_factory,
+)
+@settings(**my_hypothesis_settings)
+async def test_get_all_cards_in_category_with_short_description(
+    session: AsyncSession,
+    category: dict,
+    company: dict,
+    card: dict,
+    queue_name: str
+):
+    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
+        # создание записей
+        category_id = await create_row(CategoriesTable, category, session, queue_name)
+        company_id = await create_row(CompaniesTable, company, session, queue_name)
+        card["category_id"] = category_id
+        card["company_id"] = company_id
+        await create_row(CardsTable, card, session, queue_name)
+
+        result = await get_all_cards_in_category_with_short_description(category_id, session, queue_name)
+
+        assert isinstance(result, list)
+        assert len(result) > 0
+        assert result[-1]["main_label"] == card["main_label"]
 
 
-@pytest.mark.asyncio
-async def test_get_card_info_by_card_id(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_get_card_info_by_card_id(session: AsyncSession):
+#     ...
 
 
-@pytest.mark.asyncio
-async def test_get_all_rows_from_table(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_get_all_rows_from_table(session: AsyncSession):
+#     ...
 
 
-@pytest.mark.asyncio
-async def test_get_full_row_for_admin_by_id(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_get_full_row_for_admin_by_id(session: AsyncSession):
+#     ...
 
 
-@pytest.mark.asyncio
-async def test_update_row_by_id(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_update_row_by_id(session: AsyncSession):
+#     ...
 
 
-@pytest.mark.asyncio
-async def test_create_row(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_create_row(session: AsyncSession):
+#     ...
 
 
-@pytest.mark.asyncio
-async def test_delete_row(session: AsyncSession):
-    ...
+# @pytest.mark.asyncio
+# async def test_delete_row(session: AsyncSession):
+#     ...
 
 

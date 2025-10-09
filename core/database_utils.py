@@ -33,6 +33,7 @@ async def insert_into_outbox(
             await session.commit()
         logger.debug("Запись в outbox успешна!")
     except Exception as exc:
+        await session.rollback()
         logger.error(exc)
 
 
@@ -82,6 +83,7 @@ async def set_status_of_outbox_row(
         await session.commit()
         return True
     except Exception as exc:
+        await session.rollback()
         logger.error(exc)
         return False
 
@@ -372,6 +374,7 @@ async def update_row_by_id(
         await session.commit()
         return True
     except Exception as exc:
+        await session.rollback()
         logger.error(exc)
         return str(exc)
 
@@ -416,6 +419,7 @@ async def create_row(
         await session.commit()
         return res
     except Exception as exc:
+        await session.rollback()
         logger.error(exc)
         return str(exc)
 
@@ -460,5 +464,6 @@ async def delete_row(
         await session.commit()
         return True
     except Exception as exc:
+        await session.rollback()
         logger.error(exc)
         return str(exc)
