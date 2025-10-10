@@ -1,11 +1,11 @@
 {% if card.promocode %}
     <div>
-        <pre><code>card.promocode</code></pre>
+        <pre><code>{{ card.promocode }}</code></pre>
     </div>
 {% endif %}
 
 {% if card.call_to_action_link and card.call_to_action_btn_label %}
-    <a class="btn" href="{{ card.call_to_action_link }}">card.call_to_action_btn_label</a>
+    <a class="btn" href="{{ card.call_to_action_link }}">{{ card.call_to_action_btn_label }}</a>
 {% endif %}
 
 {% if card.obtain_method_description %}

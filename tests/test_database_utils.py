@@ -1,39 +1,46 @@
-from unittest.mock import AsyncMock, patch
-
 import pytest
-from factories import card_factory, category_factory, company_factory, my_hypothesis_settings, queue_factory
+
+from unittest.mock import AsyncMock, patch
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from sqlalchemy import delete, desc, select
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.core_types import OutBoxStatuses
 from core.database_utils import (
     create_row,
+    delete_row,
     get_all_cards_in_category_with_short_description,
     get_all_categories,
     get_all_rows_from_table,
     get_card_info_by_card_id,
+    get_full_row_for_admin_by_id,
     get_last_pending_messages_from_outbox,
     insert_into_outbox,
     set_status_of_outbox_row,
+    update_row_by_id,
 )
+
+from factories import (
+    test_async_session_maker,
+    engine,
+    card_factory,
+    category_factory,
+    company_factory,
+    my_hypothesis_settings,
+    queue_factory
+)
+
 from core.models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
 
 
 @pytest.fixture(scope="function")
 async def session():
-    engine: AsyncEngine = create_async_engine(
-        "postgresql+asyncpg://postgres:postgres@localhost/ufanet_test_db",
-        echo=False,
-    )
-    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
     async with engine.begin() as conn:
         await conn.run_sync(BaseTable().metadata.drop_all)
         await conn.run_sync(BaseTable().metadata.create_all)
 
-    async with async_session() as session:
+    async with test_async_session_maker() as session:
         yield session
 
     await engine.dispose()
@@ -117,7 +124,6 @@ async def test_get_all_categories(
     category: dict
 ):
     with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
-        # Подготовка тестовых данных
         await session.execute(delete(CategoriesTable))
         await create_row(
             CategoriesTable,
@@ -228,7 +234,6 @@ async def test_get_all_rows_from_table(
 
         assert expected_names <= db_names
 
-
         names: list = []
         for card in cards:
             card["category_id"] = categories[0]["id"]
@@ -242,23 +247,151 @@ async def test_get_all_rows_from_table(
 
         assert expected_names <= db_names
 
-# @pytest.mark.asyncio
-# async def test_get_full_row_for_admin_by_id(session: AsyncSession):
-#     ...
+@pytest.mark.asyncio
+@given(
+    category=category_factory(),
+    company=company_factory(),
+    card=card_factory(),
+    queue_name=queue_factory()
+)
+@settings(**my_hypothesis_settings)
+async def test_get_full_row_for_admin_by_id(
+    session: AsyncSession,
+    category: dict,
+    company: dict,
+    card: dict,
+    queue_name: str
+):
+    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
+        row_id = await create_row(
+            CategoriesTable,
+            category,
+            session,
+            queue_name
+        )
+        category["id"] = row_id
+        selected_category = await get_full_row_for_admin_by_id(
+            row_id,
+            CategoriesTable,
+            session,
+            queue_name
+        )
+        
+        assert selected_category == category
+
+        row_id = await create_row(
+            CompaniesTable,
+            company,
+            session,
+            queue_name
+        )
+        company["id"] = row_id
+        selected_company = await get_full_row_for_admin_by_id(
+            row_id,
+            CompaniesTable,
+            session,
+            queue_name
+        )
+        
+        assert selected_company == company
+
+        card["company_id"] = company["id"]
+        card["category_id"] = category["id"]
+
+        row_id = await create_row(
+            CardsTable,
+            card,
+            session,
+            queue_name
+        )
+
+        card["id"] = row_id
+        selected_card = await get_full_row_for_admin_by_id(
+            row_id,
+            CardsTable,
+            session,
+            queue_name
+        )
+
+        assert selected_card == card
 
 
-# @pytest.mark.asyncio
-# async def test_update_row_by_id(session: AsyncSession):
-#     ...
+@pytest.mark.asyncio
+@given(
+    category=category_factory(),
+    second_category=category_factory(),
+    queue_name=queue_factory()
+)
+@settings(**my_hypothesis_settings)
+async def test_update_row_by_id(
+    session: AsyncSession,
+    category: dict[str, str | int],
+    second_category: dict[str, str | int],
+    queue_name: str
+):
+    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
+        row_id = await create_row(
+            CategoriesTable,
+            category,
+            session,
+            queue_name
+        )
+        
+        res = await update_row_by_id(
+            row_id,
+            CategoriesTable,
+            second_category,
+            session,
+            queue_name
+        )
+        
+        assert res is True
+
+        second_category["id"] = row_id
+        selected_category = await get_full_row_for_admin_by_id(
+            row_id,
+            CategoriesTable,
+            session,
+            queue_name
+        )
+        
+        assert selected_category == second_category
 
 
-# @pytest.mark.asyncio
-# async def test_create_row(session: AsyncSession):
-#     ...
+@pytest.mark.asyncio
+@given(
+    category=category_factory(),
+    queue_name=queue_factory()
+)
+@settings(**my_hypothesis_settings)
+async def test_delete_row(
+    session: AsyncSession,
+    category: dict[str, str | int],
+    queue_name: str
+):
+    with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
+        row_id = await create_row(
+            CategoriesTable,
+            category,
+            session,
+            queue_name
+        )
 
+        res = await delete_row(
+            row_id,
+            CategoriesTable,
+            session,
+            queue_name
+        )
 
-# @pytest.mark.asyncio
-# async def test_delete_row(session: AsyncSession):
-#     ...
+        assert isinstance(res, bool)
 
+        selected_category = await get_full_row_for_admin_by_id(
+            row_id,
+            CategoriesTable,
+            session,
+            queue_name
+        )
+
+        assert selected_category == {}
 

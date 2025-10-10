@@ -1,7 +1,21 @@
 import uuid
 
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    create_async_engine,
+    async_sessionmaker,
+    AsyncSession
+)
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
+
+
+engine: AsyncEngine = create_async_engine(
+    "postgresql+asyncpg://postgres:postgres@localhost/ufanet_test_db",
+    echo=False,
+)
+
+test_async_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 my_hypothesis_settings = {
     "max_examples": 3,
@@ -45,3 +59,4 @@ def category_factory(draw):
     name = str(uuid.uuid4())[:5]
     suffix = str(uuid.uuid4())[:10] 
     return {"name": f"{name}_{suffix}"}
+
