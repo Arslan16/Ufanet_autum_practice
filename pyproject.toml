@@ -28,7 +28,6 @@ select = [
   "E",  # pycodestyle errors
   "F",  # pyflakes
   "W",  # warnings
-  "I",  # isort
   "N",  # pep8-naming
   "UP", # pyupgrade
   "B",  # flake8-bugbear
@@ -42,4 +41,4 @@ ignore = ["B008"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
-addopts = "--cov=core --cov=bot --cov=web --cov-report=term-missing"
+addopts = "--cov=. --cov=core --cov=bot --cov=web --cov=outbox --cov-report=term-missing"

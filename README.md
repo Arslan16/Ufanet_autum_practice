@@ -66,3 +66,5 @@ uv tool run ruff
 ```
 
 Faker
+
+benchmark test

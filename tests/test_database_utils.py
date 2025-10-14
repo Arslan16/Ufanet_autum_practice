@@ -6,6 +6,16 @@ from hypothesis import strategies as st
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from factories import (
+    card_factory,
+    category_factory,
+    company_factory,
+    engine,
+    my_hypothesis_settings,
+    queue_factory,
+    test_async_session_maker,
+)
+
 from core.core_types import OutBoxStatuses
 from core.database_utils import (
     create_row,
@@ -20,17 +30,6 @@ from core.database_utils import (
     set_status_of_outbox_row,
     update_row_by_id,
 )
-
-from factories import (
-    test_async_session_maker,
-    engine,
-    card_factory,
-    category_factory,
-    company_factory,
-    my_hypothesis_settings,
-    queue_factory
-)
-
 from core.models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
 
 
@@ -276,7 +275,7 @@ async def test_get_full_row_for_admin_by_id(
             session,
             queue_name
         )
-        
+
         assert selected_category == category
 
         row_id = await create_row(
@@ -292,7 +291,7 @@ async def test_get_full_row_for_admin_by_id(
             session,
             queue_name
         )
-        
+
         assert selected_company == company
 
         card["company_id"] = company["id"]
@@ -336,7 +335,7 @@ async def test_update_row_by_id(
             session,
             queue_name
         )
-        
+
         res = await update_row_by_id(
             row_id,
             CategoriesTable,
@@ -344,7 +343,7 @@ async def test_update_row_by_id(
             session,
             queue_name
         )
-        
+
         assert res is True
 
         second_category["id"] = row_id
@@ -354,7 +353,7 @@ async def test_update_row_by_id(
             session,
             queue_name
         )
-        
+
         assert selected_category == second_category
 
 

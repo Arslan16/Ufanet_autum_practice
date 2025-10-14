@@ -1,20 +1,17 @@
 import pytest
 
-from httpx import AsyncClient, ASGITransport
-from hypothesis import given, settings, strategies as st
+from httpx import ASGITransport, AsyncClient
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database_utils import create_row
+from factories import category_factory, my_hypothesis_settings, queue_factory
+from core.database_utils import create_row, get_full_row_for_admin_by_id
 from core.models import CategoriesTable
+from tests.test_database_utils import session
 from web.dependencies import async_session_generator
 from web_main import app as fastapi_app
-from tests.test_database_utils import session
-from factories import (
-    category_factory,
-    my_hypothesis_settings,
-    queue_factory
-)
 
 
 async def get_session():
@@ -37,7 +34,8 @@ async def test_index_get_handler(
 ):
     response = await ac.get("/")
 
-    assert response.status_code == 200
+    successful_code = 200
+    assert response.status_code == successful_code
     text = response.text
 
     assert "<html" in text.lower() or "<!doctype" in text.lower()
@@ -77,7 +75,8 @@ async def test_get_table_data(
         }
     )
 
-    assert response.status_code == 200
+    successful_code = 200
+    assert response.status_code == successful_code
     text = response.text
 
     assert "<table" in text.lower()
@@ -93,7 +92,7 @@ async def test_get_table_data(
     queue_name=queue_factory()
 )
 @settings(**my_hypothesis_settings)
-async def test_get_table_row_post_handler(
+async def test_get_table_data_post_handler(
     ac: AsyncClient,
     session: AsyncSession,
     categories: list[dict],
@@ -101,7 +100,7 @@ async def test_get_table_row_post_handler(
 ):
     for category in categories:
         row_id = await create_row(
-            CategoriesTable, 
+            CategoriesTable,
             category,
             session,
             queue_name
@@ -113,7 +112,8 @@ async def test_get_table_row_post_handler(
         json={"tablename": CategoriesTable.__tablename__}
     )
 
-    assert response.status_code == 200
+    successful_code = 200
+    assert response.status_code == successful_code
     text = response.text
 
     assert "<table" in text.lower()
@@ -150,11 +150,56 @@ async def test_get_table_row_post_handler(
         }
     )
 
-    assert response.status_code == 200
+    successful_code = 200
+    assert response.status_code == successful_code
     text = response.text
-
-    with open("test.html", "w+") as file:
-        file.write(text)
 
     for value in category.values():
         assert str(value) in text.strip(" \n")
+
+
+@pytest.mark.asyncio
+@given(
+    category=category_factory(),
+    new_category=category_factory(),
+    queue_name=queue_factory()
+)
+@settings(**my_hypothesis_settings)
+async def test_save_row_post_hanlder(
+    ac: AsyncClient,
+    session: AsyncSession,
+    category: dict[str, str | int],
+    new_category: dict[str, str | int],
+    queue_name: str
+):
+
+    row_id = await create_row(
+        CategoriesTable,
+        category,
+        session,
+        queue_name
+    )
+
+    response = await ac.post(
+        "/save_row",
+        json={
+            "tablename": CategoriesTable.__tablename__,
+            "id": row_id,
+            "data": new_category
+        }
+    )
+
+    successful_code: int = 200
+    assert response.status_code == successful_code
+
+    new_category["id"] = row_id
+    updated_row = await get_full_row_for_admin_by_id(
+        row_id,
+        CategoriesTable,
+        session,
+        queue_name
+    )
+
+    assert updated_row == new_category
+
+

@@ -1,13 +1,8 @@
 import uuid
 
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    create_async_engine,
-    async_sessionmaker,
-    AsyncSession
-)
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
 
 engine: AsyncEngine = create_async_engine(
@@ -42,7 +37,7 @@ def card_factory(draw):
 @st.composite
 def queue_factory(draw):
     name = str(uuid.uuid4())[:5]
-    suffix = str(uuid.uuid4())[:10] 
+    suffix = str(uuid.uuid4())[:10]
     return f"{name}_{suffix}"
 
 
@@ -50,13 +45,13 @@ def queue_factory(draw):
 def company_factory(draw):
     name = str(uuid.uuid4())[:5]
     suffix = str(uuid.uuid4())[:10]
-    short_description = str(uuid.uuid4())[:15] 
+    short_description = str(uuid.uuid4())[:15]
     return {"name": f"{name}_{suffix}", "short_description": short_description}
 
 
 @st.composite
 def category_factory(draw):
     name = str(uuid.uuid4())[:5]
-    suffix = str(uuid.uuid4())[:10] 
+    suffix = str(uuid.uuid4())[:10]
     return {"name": f"{name}_{suffix}"}
 
