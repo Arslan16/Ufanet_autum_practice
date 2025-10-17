@@ -6,8 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 from factories import card_factory, my_hypothesis_settings, queue_factory
 from hypothesis import given, settings
-from bot_main import RABBIT_MQ_CREDINTAILS, bot, run_listening_queue
-from outbox_main import send_message_to_queue
+from bot_main import bot, rmq_manager, main
 
 
 @pytest.mark.asyncio
@@ -19,21 +18,23 @@ from outbox_main import send_message_to_queue
 async def test_run_listening_queue(
     queue_name: str,
     payload: dict):
-    # Отправляем сообщение в очередь через реальную функцию
-    success = await send_message_to_queue(queue_name, payload, RABBIT_MQ_CREDINTAILS, durable=False)
-    assert success is True
+    with patch.object(bot, "send_message", new_callable=AsyncMock) as mock_send, \
+        patch("bot_main.FASTAPI_DATABASE_QUERIES_QUEUE_NAME", queue_name):
 
-    # Мокаем bot.send_message
-    with patch.object(bot, "send_message", new_callable=AsyncMock) as mock_send:
         async def limited_run():
-            task = asyncio.create_task(run_listening_queue(queue_name, RABBIT_MQ_CREDINTAILS, durable=False))
-            await asyncio.sleep(2)  # Ждём, пока сообщение обработается
+            await rmq_manager.drop_queue(queue_name, False, False)
+            task = asyncio.create_task(main())
+            success = await rmq_manager.send_message_to_queue(
+                queue_name, 
+                payload
+            )
+            assert success is True
+            await asyncio.sleep(5)
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await task
 
         await limited_run()
 
-    # Проверяем, что bot.send_message вызвался с нашим payload
     mock_send.assert_awaited_once()
 

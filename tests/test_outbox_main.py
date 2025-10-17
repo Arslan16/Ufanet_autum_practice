@@ -15,7 +15,6 @@ from core.database_utils import (
     set_status_of_outbox_row
 )
 from core.models import BaseTable, OutboxTable
-from outbox.config import RABBIT_MQ_CREDINTAILS
 from outbox_main import run_outbox_table_polling
 from tests.factories import card_factory, engine, my_hypothesis_settings, queue_factory, test_async_session_maker
 
@@ -75,7 +74,6 @@ async def test_run_outbox_table_polling(
     with patch("outbox_main.set_status_of_outbox_row", new_callable=AsyncMock) as mock_set:
         await run_outbox_table_polling(
             queue_name,
-            RABBIT_MQ_CREDINTAILS,
             iterations=1
         )
 

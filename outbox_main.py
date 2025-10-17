@@ -3,16 +3,28 @@ import json
 
 from loguru import logger
 
-from core.core_types import OutBoxStatuses, RabbitMQCredentials
-from core.database_utils import get_last_pending_messages_from_outbox, set_status_of_outbox_row
+from core.core_types import (
+    OutBoxStatuses,
+    RabbitMQManager
+)
+from core.database_utils import (
+    get_last_pending_messages_from_outbox,
+    set_status_of_outbox_row
+)
 from core.models import OutboxTable
-from core.rmq_utils import send_message_to_queue
-from outbox.config import FASTAPI_DATABASE_QUERIES_QUEUE_NAME, OUTBOX_ASYNC_SESSIONMAKER, RABBIT_MQ_CREDINTAILS
+from outbox.config import (
+    FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
+    OUTBOX_ASYNC_SESSIONMAKER,
+    RABBIT_MQ_CREDINTAILS
+)
+
+
+rmq_manager = RabbitMQManager(RABBIT_MQ_CREDINTAILS)
+"Объект управляющй соединением с RabbitMQ"
 
 
 async def run_outbox_table_polling(
     queue_name: str,
-    credintails: RabbitMQCredentials,
     iterations: int | None = None
 ):
     """
@@ -36,10 +48,9 @@ async def run_outbox_table_polling(
             "Сообщения со статусом `PENDING` в порядке возрастания по дате"
 
             for message in last_msgs:
-                status = await send_message_to_queue(
+                status = await rmq_manager.send_message_to_queue(
                     queue_name=queue_name,
-                    message=json.dumps(message.payload),
-                    credintails=credintails
+                    message=json.dumps(message.payload, ensure_ascii=False)
                 )
                 if status:
                     await set_status_of_outbox_row(message.id, OutBoxStatuses.SENT, session)
@@ -57,8 +68,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(
             run_outbox_table_polling(
-                FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
-                RABBIT_MQ_CREDINTAILS
+                queue_name=FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
             )
         )
     except KeyboardInterrupt:
