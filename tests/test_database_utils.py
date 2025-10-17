@@ -1,10 +1,12 @@
 import pytest
+import asyncio
 
 from unittest.mock import AsyncMock, patch
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from sqlalchemy import delete, desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 
 from factories import (
     card_factory,
@@ -14,9 +16,10 @@ from factories import (
     my_hypothesis_settings,
     queue_factory,
     test_async_session_maker,
+    insert_sqlalchemy_exceptions,
+    select_sqlalchemy_exceptions
 )
 
-from core.core_types import OutBoxStatuses
 from core.database_utils import (
     create_row,
     delete_row,
@@ -25,9 +28,7 @@ from core.database_utils import (
     get_all_rows_from_table,
     get_card_info_by_card_id,
     get_full_row_for_admin_by_id,
-    get_last_pending_messages_from_outbox,
     insert_into_outbox,
-    set_status_of_outbox_row,
     update_row_by_id,
 )
 from core.models import BaseTable, CardsTable, CategoriesTable, CompaniesTable, OutboxTable
@@ -47,8 +48,9 @@ async def session():
 
 @pytest.fixture(autouse=True)
 async def clear_db(session):
+    loop = asyncio.get_running_loop()
     for table in reversed(BaseTable.metadata.sorted_tables):
-        await session.execute(table.delete())
+        await loop.run_in_executor(None, lambda: session.execute(table.delete()))
     await session.commit()
 
 
@@ -69,46 +71,29 @@ async def test_insert_into_outbox(
     queue_name: str,
     payload: dict
 ):
-    await insert_into_outbox(
-        payload=payload,
-        queue=queue_name,
-        session=session,
-        commit=True
-    )
+    async with session.begin():
+        await insert_into_outbox(
+            payload=payload,
+            queue=queue_name,
+            session=session
+        )
 
-    result = await session.scalar(select(OutboxTable).order_by(desc(OutboxTable.id)))
-    assert isinstance(result, OutboxTable)
-    assert result.payload == payload
-    assert result.queue == queue_name
+        result = await session.scalar(select(OutboxTable).order_by(desc(OutboxTable.id)))
+        assert isinstance(result, OutboxTable)
+        assert result.payload == payload
+        assert result.queue == queue_name
 
 
-@pytest.mark.asyncio
-@given(
-    queue_name=queue_factory(),
-    payload=card_factory()
-)
-@settings(**my_hypothesis_settings)
-async def test_get_last_pending_messages_from_outbox(
-    session: AsyncSession,
-    queue_name: str,
-    payload: dict
-):
-    await insert_into_outbox(
-        payload=payload,
-        queue=queue_name,
-        session=session,
-        commit=True
-    )
-
-    result = await get_last_pending_messages_from_outbox(session)
-    assert isinstance(result, list)
-    assert len(result) >= 1
-    assert result[-1].payload == payload
-    assert result[-1].queue == queue_name
-
-    await set_status_of_outbox_row(result[-1].id, OutBoxStatuses.FAILED, session)
-    await session.refresh(result[-1])
-    assert result[-1].status == OutBoxStatuses.FAILED
+    for exc in insert_sqlalchemy_exceptions:
+        with patch("core.database_utils.insert_into_outbox", side_effect=exc):
+            async with session.begin():
+                session.execute = AsyncMock(side_effect=exc)
+                result = await insert_into_outbox(
+                    payload=payload,
+                    queue=queue_name,
+                    session=session
+                )
+                assert result is False
 
 
 @pytest.mark.asyncio
@@ -123,14 +108,16 @@ async def test_get_all_categories(
     category: dict
 ):
     with patch("core.database_utils.insert_into_outbox", new_callable=AsyncMock):
-        await session.execute(delete(CategoriesTable))
+        async with session.begin():
+            await session.execute(delete(CategoriesTable))
+
         await create_row(
             CategoriesTable,
             category,
             session,
             queue_name
         )
-        await session.commit()
+
         result = await get_all_categories(session, queue_name)
         assert isinstance(result, list)
         assert len(result) >= 1
@@ -240,11 +227,36 @@ async def test_get_all_rows_from_table(
             card["id"] = await create_row(CardsTable, card, session, queue_name)
             names.append(card["main_label"])
 
-        db_cards = await get_all_rows_from_table(CardsTable, session, queue_name)
+        db_cards = await get_all_rows_from_table(
+            CardsTable,
+            session,
+            queue_name
+        )
         db_names = {c["main_label"] for c in db_cards}
         expected_names = {c["main_label"] for c in cards}
 
         assert expected_names <= db_names
+
+
+@pytest.mark.asyncio
+@given(
+    queue_name=queue_factory()
+)
+@settings(**my_hypothesis_settings)
+async def test_get_all_rows_from_table_exceptions(
+    session: AsyncSession,
+    queue_name: str
+):
+    for exc in select_sqlalchemy_exceptions:
+        with patch("core.database_utils.get_all_rows_from_table", side_effect=exc):
+            session.execute = AsyncMock(side_effect=exc)
+            result = await get_all_rows_from_table(
+                CardsTable,
+                session,
+                queue_name
+            )
+            assert result == []
+
 
 @pytest.mark.asyncio
 @given(

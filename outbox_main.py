@@ -55,9 +55,11 @@ async def run_outbox_table_polling(
 
 if __name__ == "__main__":
     try:
-        asyncio.run(run_outbox_table_polling(
-            FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
-            RABBIT_MQ_CREDINTAILS
-        ))
+        asyncio.run(
+            run_outbox_table_polling(
+                FASTAPI_DATABASE_QUERIES_QUEUE_NAME,
+                RABBIT_MQ_CREDINTAILS
+            )
+        )
     except KeyboardInterrupt:
         logger.info("Работа outbox процессора завершена!")

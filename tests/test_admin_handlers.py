@@ -6,16 +6,23 @@ from hypothesis import strategies as st
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from factories import category_factory, my_hypothesis_settings, queue_factory
+from factories import category_factory, my_hypothesis_settings, queue_factory, engine, test_async_session_maker
 from core.database_utils import create_row, get_full_row_for_admin_by_id
-from core.models import CategoriesTable
-from tests.test_database_utils import session
+from core.models import CategoriesTable, BaseTable
 from web.dependencies import async_session_generator
 from web_main import app as fastapi_app
 
 
-async def get_session():
-    return session
+@pytest.fixture(scope="function")
+async def session():
+    async with engine.begin() as conn:
+        await conn.run_sync(BaseTable().metadata.drop_all)
+        await conn.run_sync(BaseTable().metadata.create_all)
+
+    async with test_async_session_maker() as session:
+        yield session
+
+    await engine.dispose()
 
 
 @pytest.fixture(scope="function")
@@ -135,7 +142,9 @@ async def test_get_table_row_post_handler(
     category: dict,
     queue_name: str
 ):
-    await session.execute(delete(CategoriesTable))
+    async with session.begin():
+        await session.execute(delete(CategoriesTable))
+
     row_id = await create_row(
         CategoriesTable,
         category,

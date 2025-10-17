@@ -2,8 +2,15 @@ import uuid
 
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
 
+from asyncpg.exceptions import UniqueViolationError
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.exc import (
+    IntegrityError,
+    SQLAlchemyError,
+    OperationalError,
+    DBAPIError
+)
 
 engine: AsyncEngine = create_async_engine(
     "postgresql+asyncpg://postgres:postgres@localhost/ufanet_test_db",
@@ -55,3 +62,40 @@ def category_factory(draw):
     suffix = str(uuid.uuid4())[:10]
     return {"name": f"{name}_{suffix}"}
 
+
+insert_sqlalchemy_exceptions = [
+    IntegrityError("msg", params=None, orig=None),
+    UniqueViolationError("msg"),
+    OperationalError("msg", params=None, orig=None),
+    DBAPIError("msg", params=None, orig=None),
+    SQLAlchemyError("msg"),
+    TypeError("msg"),
+    Exception("msg")
+]
+
+
+select_sqlalchemy_exceptions = [
+    OperationalError("msg", params=None, orig=None),
+    SQLAlchemyError("msg"),
+    AttributeError("msg"),
+    Exception("msg")
+]
+
+
+update_sqlalchemy_exceptions = [
+    IntegrityError("msg", params=None, orig=None),
+    OperationalError("msg", params=None, orig=None),
+    SQLAlchemyError("msg"),
+    Exception("msg")
+]
+
+
+delete_sqlalchemy_exceptions = [
+    IntegrityError("msg", params=None, orig=None),
+    UniqueViolationError("msg"),
+    OperationalError("msg", params=None, orig=None),
+    DBAPIError("msg", params=None, orig=None),
+    SQLAlchemyError("msg"),
+    TypeError("msg"),
+    Exception("msg")
+]

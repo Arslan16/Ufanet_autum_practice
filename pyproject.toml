@@ -42,3 +42,7 @@ ignore = ["B008"]
 pythonpath = ["."]
 asyncio_mode = "auto"
 addopts = "--cov=. --cov=core --cov=bot --cov=web --cov=outbox --cov-report=term-missing"
+filterwarnings = [
+  "ignore::pytest.PytestCollectionWarning",
+  "ignore::hypothesis.errors.HypothesisDeprecationWarning"
+]
